@@ -7,9 +7,9 @@
 #include <QScrollBar>
 #include <QTimer>
 #include <QVector>
-#include "./ui_CaseOpenDialog.h"
 #include "ItemInfoDialog.h"
 #include "MazeWindow.h"
+#include "ui_CaseOpenDialog.h"
 #include "ui_MazeWindow.h"
 
 CaseOpenDialog::CaseOpenDialog(

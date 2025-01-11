@@ -29,13 +29,11 @@ ItemInfoDialog::ItemInfoDialog(MazeWindow *parent, MazeWindow::item current_Item
          }
       });
       ui->label_Cost->setText(QString::number(current_Item.cost) + " руб.");
-      QString Name = current_Item.name.left(current_Item.name.size() - (5 + QString::number(current_Item.cost).size()));
-      ui->label_Name->setText(Name);
    } else {
       ui->label_Cost->setText("~" + QString::number(current_Item.cost) + " руб.");
-      ui->label_Name->setText(current_Item.name);
       this->accept();
    }
+   ui->label_Name->setText(current_Item.name);
    ui->label_Float->setText(QString::number(current_Item.Float, 'f', 9));
    if (current_Item.Float >= 0.45)
       ui->label_Float_Name->setText("Закаленное в боях");
@@ -48,7 +46,7 @@ ItemInfoDialog::ItemInfoDialog(MazeWindow *parent, MazeWindow::item current_Item
    else
       ui->label_Float_Name->setText("Прямо с завода");
 
-   ui->label_Photo->setPixmap(current_Item.photo.scaled(ui->label_Photo->size(), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation));
+   ui->label_Photo->setPixmap(QPixmap(current_Item.photo).scaled(ui->label_Photo->size(), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation));
    ui->label_Photo->setScaledContents(true);
 }
 

@@ -4,7 +4,11 @@
 #include "ui_MazeWindow.h"
 
 #include <QDebug>
+#include <QFile>
 #include <QGraphicsOpacityEffect>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QLabel>
 #include <QMessageBox>
 #include <QPropertyAnimation>
@@ -27,29 +31,121 @@ MazeWindow::MazeWindow(QWidget *parent)
 
    //Магазин
    connect(ui->pushButton_Buy_Item1, &QPushButton::clicked, this, [this]() {
-      QString name = this->ui->label_Item1_Name->text().right(8);
+      QString name = ui->label_Item1_Name->text().right(8);
       name.chop(5);
+      QString Name = ui->label_Item1_Name->text().left(ui->label_Item1_Name->text().size() - (1 + name.size() + 5));
       int cost = name.toInt();
       if (balanceChange(-cost))
-         putInventory(ItemPixmaps[1 - 1], ui->label_Item1_Name->text(), true, cost);
+         putInventory(ItemPixmaps[1 - 1], Name, true, cost);
    });
    connect(ui->pushButton_Buy_Item2, &QPushButton::clicked, this, [this]() {
-      QString name = this->ui->label_Item2_Name->text().right(8);
+      QString name = ui->label_Item2_Name->text().right(8);
       name.chop(5);
+      QString Name = ui->label_Item2_Name->text().left(ui->label_Item2_Name->text().size() - (1 + name.size() + 5));
       int cost = name.toInt();
       if (balanceChange(-cost))
-         putInventory(ItemPixmaps[2 - 1], ui->label_Item2_Name->text(), true, cost);
+         putInventory(ItemPixmaps[2 - 1], Name, true, cost);
    });
    connect(ui->pushButton_Buy_Item3, &QPushButton::clicked, this, [this]() {
-      QString name = this->ui->label_Item3_Name->text().right(8);
+      QString name = ui->label_Item3_Name->text().right(8);
       name.chop(5);
+      QString Name = ui->label_Item3_Name->text().left(ui->label_Item3_Name->text().size() - (1 + name.size() + 5));
       int cost = name.toInt();
       if (balanceChange(-cost))
-         putInventory(ItemPixmaps[3 - 1], ui->label_Item3_Name->text(), true, cost);
+         putInventory(ItemPixmaps[3 - 1], Name, true, cost);
    });
    ui->label_Item1->setPixmap(QPixmap(ItemPixmaps[1 - 1]).scaled(ui->label_Item1->size(), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation));
    ui->label_Item2->setPixmap(QPixmap(ItemPixmaps[2 - 1]).scaled(ui->label_Item2->size(), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation));
    ui->label_Item3->setPixmap(QPixmap(ItemPixmaps[3 - 1]).scaled(ui->label_Item3->size(), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation));
+   this->setFocus();
+   loadData();
+}
+void MazeWindow::createData()
+{
+   qDebug() << "createData: Файл будет пересоздан с значениями по умолчанию";
+   data = QJsonObject();
+   // Значения по умолчанию
+   data["balance"] = "1000 руб.";
+
+   saveData();
+}
+bool MazeWindow::saveData()
+{
+   QFile file(filePath);
+   if (file.open(QIODevice::WriteOnly)) {
+      // Сохранение текущих настроек
+      data["balance"] = ui->label_Balance->text();
+
+      // Сохранение инвентаря
+      QJsonArray inventoryArray;
+      for (const auto &item : Items) {
+         QJsonObject itemObject;
+         itemObject["name"] = item->name;
+         itemObject["photo"] = item->photo;
+         itemObject["isCase"] = item->isCase;
+         itemObject["cost"] = item->cost;
+         itemObject["Float"] = QString::number(item->Float, 'f', 9).toDouble();
+         itemObject["index"] = item->index;
+
+         inventoryArray.append(itemObject);
+      }
+      data["inventory"] = inventoryArray;
+
+      QJsonDocument doc(data);
+      file.write(doc.toJson());
+      file.close();
+      return true;
+   } else {
+      qDebug() << "saveData: Файл не может быть открыт для записи";
+      createData();
+      saveData();
+      return false;
+   }
+}
+bool MazeWindow::loadData()
+{
+   QFile file(filePath);
+   if (file.open(QIODevice::ReadOnly)) {
+      QJsonDocument doc(QJsonDocument::fromJson(file.readAll()));
+      data = doc.object();
+      file.close();
+      //Применение настроек
+      bool shouldRecreateFile = false;
+      if (data.contains("balance"))
+         ui->label_Balance->setText(data["balance"].toString());
+      else {
+         qDebug() << "loadData: Информация о \"balance\" не найдена";
+         shouldRecreateFile = true;
+      }
+      // Загрузка инвентаря
+      if (data.contains("inventory")) {
+         QJsonArray inventoryArray = data["inventory"].toArray();
+         Items.clear(); // Очистить текущий инвентарь перед загрузкой
+         for (const auto &inventoryValue : inventoryArray) {
+            QJsonObject item = inventoryValue.toObject();
+
+            QString name = item["name"].toString();
+            QString photo = item["photo"].toString();
+            bool isCase = item["isCase"].toBool();
+            int cost = item["cost"].toInt();
+            float Float = item["Float"].toDouble();
+            int index = item["index"].toInt();
+
+            putInventory(photo, name, isCase, cost, Float);
+         }
+      }
+
+      if (shouldRecreateFile) {
+         qDebug() << "loadData: Так как в файле не были найдены необходимые значения он считается повреждённым";
+         createData();
+         return false;
+      }
+      return true;
+   } else {
+      qDebug() << "loadData: Файл не может быть открыт для чтения";
+      createData();
+      return false;
+   }
 }
 void MazeWindow::putInventory(QString photo, QString name, bool isCase, int cost, float Float)
 {
@@ -96,6 +192,9 @@ void MazeWindow::getInventory(int index)
    //Эта функция убирает из инвентаря предмет под индексом
    if (index < 0 || index >= Inventory.size()) {
       return;
+   }
+   if (index < Items.size()) {
+      Items.removeAt(index); // Удаляем элемент из вектора Items
    }
 
    QPushButton *itemButton = Inventory.takeAt(index);
@@ -442,11 +541,15 @@ bool MazeWindow::balanceChange(int value)
    opacityAnimation->start();
 
    // Обновляем баланс после завершения анимации
-   QTimer::singleShot(1600, this, [this, tempCost, newBalance, value]() {
+   QTimer::singleShot(1600, this, [this, tempCost, value]() {
       tempCost->hide();
       delete tempCost;
-      if (value > 0)
+      if (value > 0) {
+         QString currentBalanceText1 = ui->label_Balance->text();
+         currentBalanceText1.chop(5);
+         int newBalance = currentBalanceText1.toInt() + value;
          ui->label_Balance->setText(QString::number(newBalance) + " руб.");
+      }
    });
 
    return true;
@@ -464,11 +567,22 @@ bool MazeWindow::isCollision(int x, int y, bool vertical)
    }
    return false;
 }
+void MazeWindow::closeEvent(QCloseEvent *event)
+{
+   saveData();
+   qDebug() << "Выход из приложения";
+   event->accept();
+}
 MazeWindow::~MazeWindow()
 {
    qDeleteAll(Inventory);
    Inventory.clear();
    qDeleteAll(walls);
    walls.clear();
+   qDeleteAll(Items);
+   Items.clear();
+   for (QLabel *existingWall : ui->GroupMaze->findChildren<QLabel *>()) {
+      delete existingWall;
+   }
    delete ui;
 }

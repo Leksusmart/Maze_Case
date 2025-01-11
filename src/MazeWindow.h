@@ -7,6 +7,11 @@
 #include <QPushButton>
 #include <QRandomGenerator>
 
+#include <QFile>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QStandardPaths>
+
 namespace Ui {
 class MazeWindow;
 }
@@ -23,7 +28,7 @@ public:
    struct item
    {
       QString name;
-      QPixmap photo;
+      QString photo;
       bool isCase = false;
       float Float;
       int cost;
@@ -34,7 +39,7 @@ public:
    void keyPressEvent(QKeyEvent *event) override;
    void createWalls();
    void createMaze();
-   int step = 20;
+   const int step = 20;
    struct cell
    {
       bool WasThere = false;
@@ -54,8 +59,11 @@ public:
    void putInventory(QString photo, QString name, bool isCase, int cost, float Float = -1);
    QVector<item *> Items;
    int markers = 0;
+   void closeEvent(QCloseEvent *event) override;
 
    //Data
+   const QString filePath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + "/Leksusmart Games/Maze_Case/data.json";
+   QJsonObject data;
    QMap<QString, QPair<QString, QList<QString>>> itemDetails = {
       //Case 1 Галерейный
       {"://image/item1_Common1.png", {"USP-S: 27", {"153", "56", "26", "18", "19"}}},
@@ -204,6 +212,10 @@ public:
       {"://image/item4_Legend.png", {"", {"", "", "", "", ""}}},
       */
    };
+
+   void createData();
+   bool saveData();
+   bool loadData();
 };
 
 #endif // MAZEWINDOW_H
