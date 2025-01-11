@@ -22,13 +22,13 @@ MazeWindow::MazeWindow(QWidget *parent)
 {
    ui->setupUi(this);
    this->setWindowIcon(QIcon("://image/EmptyIcon.png"));
+
    for (int id = 0; id < 400; id++)
       Cell.push_back(cell());
    createMaze();
    connect(ui->pushButton_Play, &QPushButton::clicked, this, [this]() { this->ui->stackedWidget->setCurrentIndex(0); });
    connect(ui->pushButton_Inventory, &QPushButton::clicked, this, [this]() { this->ui->stackedWidget->setCurrentIndex(1); });
    connect(ui->pushButton_Store, &QPushButton::clicked, this, [this]() { this->ui->stackedWidget->setCurrentIndex(2); });
-
    //Магазин
    connect(ui->pushButton_Buy_Item1, &QPushButton::clicked, this, [this]() {
       QString name = ui->label_Item1_Name->text().right(8);
@@ -54,6 +54,8 @@ MazeWindow::MazeWindow(QWidget *parent)
       if (balanceChange(-cost))
          putInventory(ItemPixmaps[3 - 1], Name, true, cost);
    });
+
+   ui->label_Finish->setPixmap(QPixmap("://image/Finish.png").scaled(ui->label_Finish->size(), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation));
    ui->label_Item1->setPixmap(QPixmap(ItemPixmaps[1 - 1]).scaled(ui->label_Item1->size(), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation));
    ui->label_Item2->setPixmap(QPixmap(ItemPixmaps[2 - 1]).scaled(ui->label_Item2->size(), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation));
    ui->label_Item3->setPixmap(QPixmap(ItemPixmaps[3 - 1]).scaled(ui->label_Item3->size(), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation));
@@ -65,7 +67,7 @@ void MazeWindow::createData()
    qDebug() << "createData: Файл будет пересоздан с значениями по умолчанию";
    data = QJsonObject();
    // Значения по умолчанию
-   data["balance"] = "1000 руб.";
+   data["balance"] = "0 руб.";
 
    saveData();
 }
@@ -315,9 +317,10 @@ void MazeWindow::createMaze()
    // Эта функция создаёт с помощью алгоритма связи ячеек лабиринта
 
    // Обнуляем лабиринт
-   ui->Player->move(ui->GroupMaze->width() - step, ui->GroupMaze->height() - step);
+   ui->Player->move(ui->GroupMaze->width() - step + 2, ui->GroupMaze->height() - step + 2);
    for (QLabel *Wall : ui->GroupMaze->findChildren<QLabel *>()) {
-      Wall->deleteLater();
+      if (Wall != ui->Player)
+         Wall->deleteLater();
    }
    walls.clear();
    for (int id = 0; id < 400; id++) {
@@ -446,37 +449,41 @@ void MazeWindow::keyPressEvent(QKeyEvent *event)
    switch (event->key()) {
    case Qt::Key_W:
    case Qt::Key_Up:
-      if (ui->Player->y() - step >= 0 && !isCollision(ui->Player->x(), ui->Player->y() - 1, false)) {
-         id = (ui->Player->x() / step) + ui->Player->y();
+      ui->Player->setStyleSheet("image: url(:/image/PlayerUp.png);");
+      if (ui->Player->y() - 2 - step >= 0 && !isCollision(ui->Player->x() - 2, ui->Player->y() - 2 - 1, false)) {
+         id = ((ui->Player->x() - 2) / step) + ui->Player->y() - 2;
          ui->Player->move(ui->Player->x(), ui->Player->y() - step);
-         newId = (ui->Player->x() / step) + ui->Player->y();
+         newId = ((ui->Player->x() - 2) / step) + ui->Player->y() - 2;
          createWayMarker(id, newId);
       }
       break;
    case Qt::Key_A:
    case Qt::Key_Left:
-      if (ui->Player->x() - step >= 0 && !isCollision(ui->Player->x() - 1, ui->Player->y(), true)) {
-         id = (ui->Player->x() / step) + ui->Player->y();
+      ui->Player->setStyleSheet("image: url(:/image/PlayerLeft.png);");
+      if (ui->Player->x() - 2 - step >= 0 && !isCollision(ui->Player->x() - 2 - 1, ui->Player->y() - 2, true)) {
+         id = ((ui->Player->x() - 2) / step) + ui->Player->y() - 2;
          ui->Player->move(ui->Player->x() - step, ui->Player->y());
-         newId = (ui->Player->x() / step) + ui->Player->y();
+         newId = ((ui->Player->x() - 2) / step) + ui->Player->y() - 2;
          createWayMarker(id, newId);
       }
       break;
    case Qt::Key_S:
    case Qt::Key_Down:
-      if (ui->Player->y() + step < ui->GroupMaze->height() && !isCollision(ui->Player->x(), ui->Player->y() + step - 1, false)) {
-         id = (ui->Player->x() / step) + ui->Player->y();
+      ui->Player->setStyleSheet("image: url(:/image/PlayerDown.png);");
+      if (ui->Player->y() - 2 + step < ui->GroupMaze->height() && !isCollision(ui->Player->x() - 2, ui->Player->y() - 2 + step - 1, false)) {
+         id = ((ui->Player->x() - 2) / step) + ui->Player->y() - 2;
          ui->Player->move(ui->Player->x(), ui->Player->y() + step);
-         newId = (ui->Player->x() / step) + ui->Player->y();
+         newId = ((ui->Player->x() - 2) / step) + ui->Player->y() - 2;
          createWayMarker(id, newId);
       }
       break;
    case Qt::Key_D:
    case Qt::Key_Right:
-      if (ui->Player->x() + step < ui->GroupMaze->width() && !isCollision(ui->Player->x() + step - 1, ui->Player->y(), true)) {
-         id = (ui->Player->x() / step) + ui->Player->y();
+      ui->Player->setStyleSheet("image: url(:/image/PlayerRight.png);");
+      if (ui->Player->x() - 2 + step < ui->GroupMaze->width() && !isCollision(ui->Player->x() - 2 + step - 1, ui->Player->y() - 2, true)) {
+         id = ((ui->Player->x() - 2) / step) + ui->Player->y() - 2;
          ui->Player->move(ui->Player->x() + step, ui->Player->y());
-         newId = (ui->Player->x() / step) + ui->Player->y();
+         newId = ((ui->Player->x() - 2) / step) + ui->Player->y() - 2;
          createWayMarker(id, newId);
       }
       break;
@@ -484,7 +491,8 @@ void MazeWindow::keyPressEvent(QKeyEvent *event)
 
       break;
    }
-   if (ui->Player->x() == ui->label_Finish->x() - 201 && ui->Player->y() == ui->label_Finish->y() - 26) {
+   ui->Player->raise();
+   if (ui->Player->x() - 2 == ui->label_Finish->x() - 201 && ui->Player->y() - 2 == ui->label_Finish->y() - 26) {
       balanceChange(markers * 5);
       markers = 0;
       ui->label_Finish->setGeometry(201 + randomGenerator->bounded(0, 20) * step, 26 + randomGenerator->bounded(0, 20) * step, ui->label_Finish->width(), ui->label_Finish->height());

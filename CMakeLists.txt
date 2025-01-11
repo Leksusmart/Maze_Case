@@ -29,6 +29,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         src/ItemInfoDialog.h src/ItemInfoDialog.cpp src/ItemInfoDialog.ui
         src/CaseOpenDialog.h src/CaseOpenDialog.cpp src/CaseOpenDialog.ui
         src/meta.rc
+
     )
 else()
     if(ANDROID)

@@ -127,5 +127,10 @@
         <file>image/item3_VeryRare1.png</file>
         <file>image/item3_VeryRare2.png</file>
         <file>image/item3_VeryRare3.png</file>
+        <file>image/Finish.png</file>
+        <file>image/PlayerDown.png</file>
+        <file>image/PlayerLeft.png</file>
+        <file>image/PlayerRight.png</file>
+        <file>image/PlayerUp.png</file>
     </qresource>
 </RCC>
