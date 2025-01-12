@@ -2,15 +2,15 @@
 #include <QCloseEvent>
 #include <QHBoxLayout>
 #include <QLabel>
-#include <QPropertyAnimation>
-#include <QPushButton>
-#include <QScrollBar>
-#include <QTimer>
-#include <QVector>
 #include "ItemInfoDialog.h"
 #include "MazeWindow.h"
 #include "ui_CaseOpenDialog.h"
 #include "ui_MazeWindow.h"
+
+#include <QPropertyAnimation>
+#include <QPushButton>
+#include <QScrollBar>
+#include <QTimer>
 
 CaseOpenDialog::CaseOpenDialog(
    MazeWindow *parent, int Case_Index)
@@ -33,7 +33,7 @@ CaseOpenDialog::CaseOpenDialog(
       this->setWindowTitle(parent->ui->label_Item3_Name->text().left(parent->ui->label_Item3_Name->text().length() - 9));
       break;
    default:
-      qDebug() << "кейса с таким индексом не существует";
+      qDebug() << "кейса с индексом " << Case_Index << " не существует";
       return;
    }
    CreateCase();

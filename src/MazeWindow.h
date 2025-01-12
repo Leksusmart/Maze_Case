@@ -23,8 +23,9 @@ class MazeWindow : public QMainWindow
 public:
    explicit MazeWindow(QWidget *parent = nullptr);
    ~MazeWindow();
-   bool balanceChange(int value);
-   void getInventory(int index);
+   Ui::MazeWindow *ui;
+   QVector<QString> ItemPixmaps{"://image/item1_Case.png", "://image/item2_Case.png", "://image/item3_Case.png"};
+   QRandomGenerator *randomGenerator = QRandomGenerator::global();
    struct item
    {
       QString name;
@@ -34,12 +35,25 @@ public:
       int cost;
       int index;
    };
-   Ui::MazeWindow *ui;
-
+public slots:
+   bool balanceChange(int value);
+   void putInventory(QString photo, QString name, bool isCase, int cost, float Float = -1);
+   void getInventory(int index);
+private slots:
    void keyPressEvent(QKeyEvent *event) override;
-   void createWalls();
+   void closeEvent(QCloseEvent *event) override;
    void createMaze();
-   const int step = 20;
+   void createWalls();
+   void createWayMarker(short int id1, short int id2);
+   bool isCollision(int x, int y, bool vertical);
+   void createData();
+   bool saveData();
+   bool loadData();
+
+   void look(short int id = 399);
+
+private:
+   unsigned int maxId = 399;
    struct cell
    {
       bool WasThere = false;
@@ -48,22 +62,20 @@ public:
       bool Down = false;
       bool Right = false;
    };
-   QVector<QString> ItemPixmaps{"://image/item1_Case.png", "://image/item2_Case.png", "://image/item3_Case.png"};
    QVector<QPushButton *> Inventory;
    QVector<cell> Cell;
-   void createWayMarker(short int id1, short int id2);
-   void look(short int id = 399);
    QList<QLabel *> walls;
-   bool isCollision(int x, int y, bool vertical);
-   QRandomGenerator *randomGenerator = QRandomGenerator::global();
-   void putInventory(QString photo, QString name, bool isCase, int cost, float Float = -1);
    QVector<item *> Items;
+   const int step = 20;
    int markers = 0;
-   void closeEvent(QCloseEvent *event) override;
+   unsigned int Finished;
+   unsigned short int PlayerOffset = 2;
 
    //Data
    const QString filePath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + "/Leksusmart Games/Maze_Case/data.json";
    QJsonObject data;
+
+public:
    QMap<QString, QPair<QString, QList<QString>>> itemDetails = {
       //Case 1 Галерейный
       {"://image/item1_Common1.png", {"USP-S: 27", {"153", "56", "26", "18", "19"}}},
@@ -212,10 +224,6 @@ public:
       {"://image/item4_Legend.png", {"", {"", "", "", "", ""}}},
       */
    };
-
-   void createData();
-   bool saveData();
-   bool loadData();
 };
 
 #endif // MAZEWINDOW_H

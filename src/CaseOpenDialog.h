@@ -17,19 +17,18 @@ class CaseOpenDialog : public QDialog
 public:
    explicit CaseOpenDialog(MazeWindow *parent = nullptr, int Case_Index = 1);
    ~CaseOpenDialog();
-   QString reward;
-   float Float;
-public slots:
-   void CreateCase();
-   void StartAnimation();
-
-private:
-   Ui::CaseOpenDialog *ui;
-   QPropertyAnimation *animation;
-   MazeWindow *parent;
-   int Case_Index;
+private slots:
    void closeEvent(QCloseEvent *event) override;
+   void StartAnimation();
+   void CreateCase();
+private:
+   QPropertyAnimation *animation;
    QTimer *animationTimer;
+   Ui::CaseOpenDialog *ui;
+   MazeWindow *parent;
+   QString reward;
+   int Case_Index;
+   float Float;
 };
 
 #endif // CASEOPENDIALOG_H

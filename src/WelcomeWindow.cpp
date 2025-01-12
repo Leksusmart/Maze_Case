@@ -1,10 +1,10 @@
 #include "WelcomeWindow.h"
+#include "ui_WelcomeWindow.h"
+
 #include <QHBoxLayout>
 #include <QLabel>
-#include <QPixmap>
 #include <QPropertyAnimation>
 #include <QTimer>
-#include "ui_WelcomeWindow.h"
 
 WelcomeWindow::WelcomeWindow(
    QWidget *parent)

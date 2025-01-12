@@ -14,10 +14,12 @@ class ItemInfoDialog : public QDialog
 
 public:
    explicit ItemInfoDialog(MazeWindow *parent, MazeWindow::item current_Item, int Item_Index = -1);
-   int Item_Index = 0;
-   bool sold = false;
    ~ItemInfoDialog();
+   bool sold = false;
+
+private:
    Ui::ItemInfoDialog *ui;
+   int Item_Index = 0;
 };
 
 #endif // ITEMINFODIALOG_H

@@ -29,7 +29,7 @@
    </size>
   </property>
   <property name="focusPolicy">
-   <enum>Qt::FocusPolicy::ClickFocus</enum>
+   <enum>Qt::FocusPolicy::StrongFocus</enum>
   </property>
   <property name="contextMenuPolicy">
    <enum>Qt::ContextMenuPolicy::NoContextMenu</enum>
@@ -49,6 +49,9 @@
       <width>800</width>
       <height>450</height>
      </rect>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::FocusPolicy::StrongFocus</enum>
     </property>
     <property name="currentIndex">
      <number>0</number>
@@ -171,7 +174,7 @@
        </sizepolicy>
       </property>
       <property name="focusPolicy">
-       <enum>Qt::FocusPolicy::ClickFocus</enum>
+       <enum>Qt::FocusPolicy::StrongFocus</enum>
       </property>
       <property name="contextMenuPolicy">
        <enum>Qt::ContextMenuPolicy::NoContextMenu</enum>
@@ -218,7 +221,7 @@
        </rect>
       </property>
       <property name="focusPolicy">
-       <enum>Qt::FocusPolicy::ClickFocus</enum>
+       <enum>Qt::FocusPolicy::StrongFocus</enum>
       </property>
       <property name="text">
        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;Справка:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;1&lt;/span&gt;. Используйте стрелки  или&lt;/p&gt;&lt;p&gt;WASD чтобы двигаться&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;2&lt;/span&gt;. За достижение зелёной метки&lt;/p&gt;&lt;p&gt;получите вознаграждение&lt;/p&gt;&lt;p&gt;оно зависит от пройденного&lt;/p&gt;&lt;p&gt;расстояния&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -969,7 +972,7 @@ QPushButton::pressed {
      <rect>
       <x>200</x>
       <y>30</y>
-      <width>401</width>
+      <width>400</width>
       <height>50</height>
      </rect>
     </property>
@@ -980,13 +983,13 @@ QPushButton::pressed {
      </font>
     </property>
     <property name="focusPolicy">
-     <enum>Qt::FocusPolicy::ClickFocus</enum>
+     <enum>Qt::FocusPolicy::StrongFocus</enum>
     </property>
     <property name="styleSheet">
      <string notr="true">color: rgb(255, 255, 0);</string>
     </property>
     <property name="text">
-     <string>1000 руб.</string>
+     <string>0 руб.</string>
     </property>
     <property name="alignment">
      <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -1001,8 +1004,11 @@ QPushButton::pressed {
       <height>25</height>
      </rect>
     </property>
+    <property name="cursor">
+     <cursorShape>PointingHandCursor</cursorShape>
+    </property>
     <property name="focusPolicy">
-     <enum>Qt::FocusPolicy::ClickFocus</enum>
+     <enum>Qt::FocusPolicy::StrongFocus</enum>
     </property>
     <property name="styleSheet">
      <string notr="true">QPushButton {
@@ -1030,8 +1036,11 @@ QPushButton::pressed {
       <height>25</height>
      </rect>
     </property>
+    <property name="cursor">
+     <cursorShape>PointingHandCursor</cursorShape>
+    </property>
     <property name="focusPolicy">
-     <enum>Qt::FocusPolicy::ClickFocus</enum>
+     <enum>Qt::FocusPolicy::StrongFocus</enum>
     </property>
     <property name="styleSheet">
      <string notr="true">QPushButton {
@@ -1059,8 +1068,11 @@ QPushButton::pressed {
       <height>25</height>
      </rect>
     </property>
+    <property name="cursor">
+     <cursorShape>PointingHandCursor</cursorShape>
+    </property>
     <property name="focusPolicy">
-     <enum>Qt::FocusPolicy::ClickFocus</enum>
+     <enum>Qt::FocusPolicy::StrongFocus</enum>
     </property>
     <property name="styleSheet">
      <string notr="true">QPushButton {
@@ -1077,6 +1089,25 @@ QPushButton::pressed {
     </property>
     <property name="text">
      <string>Магазин</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="labelStatic_Rank">
+    <property name="geometry">
+     <rect>
+      <x>600</x>
+      <y>30</y>
+      <width>183</width>
+      <height>73</height>
+     </rect>
+    </property>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::FocusPolicy::StrongFocus</enum>
     </property>
    </widget>
   </widget>

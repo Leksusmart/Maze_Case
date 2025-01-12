@@ -1,7 +1,9 @@
 #include "ItemInfoDialog.h"
-#include <QStyle>
 #include "MazeWindow.h"
 #include "ui_ItemInfoDialog.h"
+
+#include <QStyle>
+
 ItemInfoDialog::ItemInfoDialog(MazeWindow *parent, MazeWindow::item current_Item, int Item_Index)
    : QDialog(parent)
    , ui(new Ui::ItemInfoDialog)
