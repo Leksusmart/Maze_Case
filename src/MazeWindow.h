@@ -49,6 +49,7 @@ private slots:
    void createData();
    bool saveData();
    bool loadData();
+   void checkRank();
 
    void look(short int id = 399);
 

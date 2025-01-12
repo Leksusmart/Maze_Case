@@ -1091,7 +1091,7 @@ QPushButton::pressed {
      <string>Магазин</string>
     </property>
    </widget>
-   <widget class="QLabel" name="labelStatic_Rank">
+   <widget class="QLabel" name="label_Rank">
     <property name="geometry">
      <rect>
       <x>600</x>

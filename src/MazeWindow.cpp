@@ -34,9 +34,18 @@ MazeWindow::MazeWindow(QWidget *parent)
    ui->label_Item3->setPixmap(QPixmap(ItemPixmaps[3 - 1]).scaled(ui->label_Item3->size(), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation));
 
    //Подключение кнопок
-   connect(ui->pushButton_Play, &QPushButton::clicked, this, [this]() { this->ui->stackedWidget->setCurrentIndex(0); });
-   connect(ui->pushButton_Inventory, &QPushButton::clicked, this, [this]() { this->ui->stackedWidget->setCurrentIndex(1); });
-   connect(ui->pushButton_Store, &QPushButton::clicked, this, [this]() { this->ui->stackedWidget->setCurrentIndex(2); });
+   connect(ui->pushButton_Play, &QPushButton::clicked, this, [this]() {
+      ui->label_Rank->show();
+      ui->stackedWidget->setCurrentIndex(0);
+   });
+   connect(ui->pushButton_Inventory, &QPushButton::clicked, this, [this]() {
+      ui->label_Rank->hide();
+      ui->stackedWidget->setCurrentIndex(1);
+   });
+   connect(ui->pushButton_Store, &QPushButton::clicked, this, [this]() {
+      ui->label_Rank->hide();
+      ui->stackedWidget->setCurrentIndex(2);
+   });
    connect(ui->pushButton_Buy_Item1, &QPushButton::clicked, this, [this]() {
       QString name = ui->label_Item1_Name->text().right(8);
       name.chop(5);
@@ -113,6 +122,7 @@ bool MazeWindow::loadData()
       data = doc.object();
       file.close();
       //Применение настроек
+      checkRank();
       bool shouldRecreateFile = false;
       if (data.contains("balance"))
          ui->label_Balance->setText(data["balance"].toString());
@@ -501,9 +511,7 @@ void MazeWindow::keyPressEvent(QKeyEvent *event)
    ui->Player->raise();
    if (ui->Player->x() - PlayerOffset == ui->label_Finish->x() - (ui->GroupMaze->x() + 1) && ui->Player->y() - PlayerOffset == ui->label_Finish->y() - (ui->GroupMaze->y() + 1)) {
       Finished++;
-      QString tempRank = "";
-      if (Finished < 10) {
-      }
+      checkRank();
       balanceChange(markers * 5);
       markers = 0;
       ui->label_Finish->setGeometry((ui->GroupMaze->x() + 1) + randomGenerator->bounded(0, 20) * step,
@@ -513,6 +521,47 @@ void MazeWindow::keyPressEvent(QKeyEvent *event)
       createMaze();
    }
    QMainWindow::keyPressEvent(event);
+}
+void MazeWindow::checkRank()
+{
+   QString tempRank = "";
+   if (Finished >= 1000)
+      tempRank = ":/image/Rank18.png";
+   else if (Finished >= 800)
+      tempRank = ":/image/Rank17.png";
+   else if (Finished >= 700)
+      tempRank = ":/image/Rank16.png";
+   else if (Finished >= 600)
+      tempRank = ":/image/Rank15.png";
+   else if (Finished >= 500)
+      tempRank = ":/image/Rank14.png";
+   else if (Finished >= 400)
+      tempRank = ":/image/Rank13.png";
+   else if (Finished >= 340)
+      tempRank = ":/image/Rank12.png";
+   else if (Finished >= 250)
+      tempRank = ":/image/Rank11.png";
+   else if (Finished >= 190)
+      tempRank = ":/image/Rank10.png";
+   else if (Finished >= 150)
+      tempRank = ":/image/Rank9.png";
+   else if (Finished >= 120)
+      tempRank = ":/image/Rank8.png";
+   else if (Finished >= 90)
+      tempRank = ":/image/Rank7.png";
+   else if (Finished >= 65)
+      tempRank = ":/image/Rank6.png";
+   else if (Finished >= 40)
+      tempRank = ":/image/Rank5.png";
+   else if (Finished >= 30)
+      tempRank = ":/image/Rank4.png";
+   else if (Finished >= 20)
+      tempRank = ":/image/Rank3.png";
+   else if (Finished >= 10)
+      tempRank = ":/image/Rank2.png";
+   else if (Finished > 0)
+      tempRank = ":/image/Rank1.png";
+   ui->label_Rank->setPixmap(QPixmap(tempRank));
 }
 bool MazeWindow::balanceChange(int value)
 {

@@ -132,5 +132,23 @@
         <file>image/PlayerLeft.png</file>
         <file>image/PlayerRight.png</file>
         <file>image/PlayerUp.png</file>
+        <file>image/Rank1.png</file>
+        <file>image/Rank10.png</file>
+        <file>image/Rank11.png</file>
+        <file>image/Rank12.png</file>
+        <file>image/Rank13.png</file>
+        <file>image/Rank14.png</file>
+        <file>image/Rank15.png</file>
+        <file>image/Rank16.png</file>
+        <file>image/Rank17.png</file>
+        <file>image/Rank18.png</file>
+        <file>image/Rank2.png</file>
+        <file>image/Rank3.png</file>
+        <file>image/Rank4.png</file>
+        <file>image/Rank5.png</file>
+        <file>image/Rank6.png</file>
+        <file>image/Rank7.png</file>
+        <file>image/Rank8.png</file>
+        <file>image/Rank9.png</file>
     </qresource>
 </RCC>
