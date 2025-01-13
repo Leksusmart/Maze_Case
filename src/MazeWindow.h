@@ -1,15 +1,13 @@
 #ifndef MAZEWINDOW_H
 #define MAZEWINDOW_H
 
+#include <QJsonObject>
 #include <QKeyEvent>
 #include <QLabel>
 #include <QMainWindow>
 #include <QPushButton>
 #include <QRandomGenerator>
-
-#include <QFile>
-#include <QJsonDocument>
-#include <QJsonObject>
+#include <QShowEvent>
 #include <QStandardPaths>
 
 namespace Ui {
@@ -40,6 +38,7 @@ public slots:
    void putInventory(QString photo, QString name, bool isCase, int cost, float Float = -1);
    void getInventory(int index);
 private slots:
+   void resizeEvent(QResizeEvent *event) override;
    void keyPressEvent(QKeyEvent *event) override;
    void closeEvent(QCloseEvent *event) override;
    void createMaze();
@@ -50,11 +49,14 @@ private slots:
    bool saveData();
    bool loadData();
    void checkRank();
-
-   void look(short int id = 399);
+   void update();
+   void kill(short int id);
 
 private:
-   unsigned int maxId = 399;
+   unsigned int maxCols;
+   unsigned int maxRows;
+   unsigned int errorCounter = 0;
+   unsigned int maxId;
    struct cell
    {
       bool WasThere = false;
@@ -68,8 +70,8 @@ private:
    QList<QLabel *> walls;
    QVector<item *> Items;
    const int step = 20;
-   int markers = 0;
-   unsigned int Finished;
+   unsigned int markers = 0;
+   double score;
    unsigned short int PlayerOffset = 2;
 
    //Data

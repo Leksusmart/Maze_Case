@@ -20,14 +20,8 @@ MazeWindow::MazeWindow(QWidget *parent)
    , ui(new Ui::MazeWindow)
 {
    ui->setupUi(this);
+
    this->setWindowIcon(QIcon("://image/EmptyIcon.png"));
-
-   for (int id = 0; id <= maxId; id++)
-      Cell.push_back(cell());
-   createMaze();
-   this->setFocus();
-   loadData();
-
    ui->label_Finish->setPixmap(QPixmap("://image/Finish.png").scaled(ui->label_Finish->size(), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation));
    ui->label_Item1->setPixmap(QPixmap(ItemPixmaps[1 - 1]).scaled(ui->label_Item1->size(), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation));
    ui->label_Item2->setPixmap(QPixmap(ItemPixmaps[2 - 1]).scaled(ui->label_Item2->size(), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation));
@@ -35,15 +29,15 @@ MazeWindow::MazeWindow(QWidget *parent)
 
    //Подключение кнопок
    connect(ui->pushButton_Play, &QPushButton::clicked, this, [this]() {
-      ui->label_Rank->show();
+      checkRank();
       ui->stackedWidget->setCurrentIndex(0);
    });
    connect(ui->pushButton_Inventory, &QPushButton::clicked, this, [this]() {
-      ui->label_Rank->hide();
+      ui->label_Rank->setPixmap(QPixmap());
       ui->stackedWidget->setCurrentIndex(1);
    });
    connect(ui->pushButton_Store, &QPushButton::clicked, this, [this]() {
-      ui->label_Rank->hide();
+      ui->label_Rank->setPixmap(QPixmap());
       ui->stackedWidget->setCurrentIndex(2);
    });
    connect(ui->pushButton_Buy_Item1, &QPushButton::clicked, this, [this]() {
@@ -70,6 +64,76 @@ MazeWindow::MazeWindow(QWidget *parent)
       if (balanceChange(-cost))
          putInventory(ItemPixmaps[3 - 1], Name, true, cost);
    });
+   connect(ui->Button_Size, &QPushButton::clicked, this, [this]() {
+      // Создание нового лабиринта с выбранным размером + обновление интерфейса
+      int newRows = ui->spinBox_SizeV->value();
+      int newCols = ui->spinBox_SizeH->value();
+
+      bool needUpdate = true;
+      if (ui->GroupMaze->width() / step == newCols && ui->GroupMaze->height() / step == newRows)
+         needUpdate = false;
+
+      ui->GroupMaze->setFixedSize(newCols * step, newRows * step);
+
+      createMaze();
+      if (needUpdate)
+         update();
+   });
+
+   loadData();
+   update();
+   createMaze();
+   setFocus();
+}
+void MazeWindow::update()
+{
+   // Вычесление максимальных значений
+   QSize screen = this->screen()->size();
+   maxCols = (int) (screen.width() - (6 + ui->labelStatic_Hint->width() + 6 + 6 + ui->label_Size->width() + 6)) / step;
+   maxRows = (int) ((screen.height() - 77) - (5 + ui->label_Balance->height() + ui->pushButton_Inventory->height())) / step;
+   ui->label_Size->setText(QString("Размер лабиринта\nmax x = %1\nmax y = %2").arg(maxCols).arg(maxRows));
+   ui->spinBox_SizeH->setMaximum(maxCols);
+   ui->spinBox_SizeV->setMaximum(maxRows);
+   // Обновление лабиринта
+   int width = ui->GroupMaze->width();
+   int height = ui->GroupMaze->height();
+   int oldx = ui->GroupMaze->x();
+   int oldy = ui->GroupMaze->y();
+   ui->GroupMaze->move(QPoint(1, 0));
+   ui->label_Finish->move(ui->label_Finish->x() + ui->GroupMaze->x() - oldx, ui->label_Finish->y() + ui->GroupMaze->y() - oldy);
+
+   // Обновление рамки лабиринта
+   int x = ui->GroupMaze->x() - 1;
+   int y = ui->GroupMaze->y();
+   ui->labelStatic_Wall_Left->setGeometry(x, y, 2, height + 1);
+   ui->labelStatic_Wall_Right->setGeometry(x + width, y, 2, height + 1);
+   ui->labelStatic_Wall_Up->setGeometry(x, y, width + 2, 2);
+   ui->labelStatic_Wall_Down->setGeometry(x, y + height - 1, width + 2, 2);
+   ui->labelStatic_Wall_Left->raise();
+   ui->labelStatic_Wall_Right->raise();
+   ui->labelStatic_Wall_Up->raise();
+   ui->labelStatic_Wall_Down->raise();
+
+   // Ограничение окна
+   ui->groupBox->setMinimumSize(ui->GroupMaze->size() + QSize(2, 1));
+   ui->stackedWidget->setMinimumSize(ui->groupBox->width(), ui->groupBox->height());
+   this->setMinimumWidth(6 + ui->labelStatic_Hint->width() + 6 + ui->groupBox->width() + 6 + ui->label_Size->width() + 6);
+   this->setMinimumHeight(5 + ui->groupBox->height() + ui->label_Balance->height() + ui->pushButton_Inventory->height());
+}
+void MazeWindow::resizeEvent(QResizeEvent *event)
+{
+   QMainWindow::resizeEvent(event);
+   ui->scrollArea_Inventory->resize(ui->stackedWidget->size());
+   ui->scrollArea_Store->resize(ui->stackedWidget->size());
+
+   // Инвентарь
+   for (int i = 0; i < Inventory.size(); ++i) {
+      int row = i / (int) ((width() + 5) / (166 + 15));
+      int column = i % (int) ((width() + 5) / (166 + 15));
+      ui->gridLayout->addWidget(Inventory[i], row, column);
+   }
+   // Всё остальное в функции
+   update();
 }
 void MazeWindow::createData()
 {
@@ -77,7 +141,7 @@ void MazeWindow::createData()
    data = QJsonObject();
    // Значения по умолчанию
    data["balance"] = "0 руб.";
-   data["Finished"] = 0;
+   data["score"] = 0;
    saveData();
 }
 bool MazeWindow::saveData()
@@ -101,7 +165,7 @@ bool MazeWindow::saveData()
          inventoryArray.append(itemObject);
       }
       data["inventory"] = inventoryArray;
-      data["Finished"] = QJsonValue::fromVariant(static_cast<unsigned int>(Finished));
+      data["score"] = QJsonValue::fromVariant(static_cast<double>(score));
 
       QJsonDocument doc(data);
       file.write(doc.toJson());
@@ -122,7 +186,6 @@ bool MazeWindow::loadData()
       data = doc.object();
       file.close();
       //Применение настроек
-      checkRank();
       bool shouldRecreateFile = false;
       if (data.contains("balance"))
          ui->label_Balance->setText(data["balance"].toString());
@@ -147,12 +210,13 @@ bool MazeWindow::loadData()
             putInventory(photo, name, isCase, cost, Float);
          }
       }
-      if (data.contains("Finished"))
-         Finished = data["Finished"].toInt();
+      if (data.contains("score"))
+         score = data["score"].toDouble();
       else {
-         qDebug() << "loadData: Информация о \"Finished\" не найдена";
+         qDebug() << "loadData: Информация о \"score\" не найдена";
          shouldRecreateFile = true;
       }
+      checkRank();
 
       if (shouldRecreateFile) {
          qDebug() << "loadData: Так как в файле не были найдены необходимые значения он считается повреждённым";
@@ -200,8 +264,8 @@ void MazeWindow::putInventory(QString photo, QString name, bool isCase, int cost
       }
    });
    for (int i = 0; i < Inventory.size(); ++i) {
-      int row = i / 4;
-      int column = i % 4;
+      int row = i / (int) ((width() + 5) / (166 + 15));
+      int column = i % (int) ((width() + 5) / (166 + 15));
       ui->gridLayout->removeWidget(Inventory[i]);
       ui->gridLayout->addWidget(Inventory[i], row, column);
    }
@@ -222,54 +286,50 @@ void MazeWindow::getInventory(int index)
 
    for (int i = index; i < Inventory.size(); ++i) {
       ui->gridLayout->removeWidget(Inventory[i]);
-      int newRow = i / 4;
-      int newColumn = i % 4;
+      int newRow = i / (int) ((width() + 5) / (166 + 15));
+      int newColumn = i % (int) ((width() + 5) / (166 + 15));
       ui->gridLayout->addWidget(Inventory[i], newRow, newColumn);
    }
 }
 void MazeWindow::createWayMarker(short int id1, short int id2)
 {
    // Эта функция создаёт между двумя рядом лежащими клетками линию
-   int x1 = (id1 % step) * step;
-   int y1 = (int) (id1 / step) * step;
-   int x2 = (id2 % step) * step;
-   int y2 = (int) (id2 / step) * step;
+
+   int x1 = (id1 % (ui->GroupMaze->width() / step)) * step;
+   int y1 = (int) (id1 / (ui->GroupMaze->width() / step)) * step;
+   int x2 = (id2 % (ui->GroupMaze->width() / step)) * step;
+   int y2 = (int) (id2 / (ui->GroupMaze->width() / step)) * step;
 
    int way = id1 - id2;
    QLabel *Wall = new QLabel(ui->GroupMaze);
    int x;
    int y;
 
-   switch (way) {
-   case -20: // Вниз
+   if (way == -(ui->GroupMaze->width() / step)) { // Вниз
       Wall->setStyleSheet("background-color: Silver; border: 0px;");
       Wall->setFixedSize(2, 20);
       x = x1 + 9;
       y = y1 + 11;
       Wall->move(x, y);
-      break;
-   case -1: // Вправо
+   } else if (way == -1) { // Вправо
       Wall->setStyleSheet("background-color: Silver; border: 0px;");
       Wall->setFixedSize(20, 2);
       x = x1 + 11;
       y = y1 + 9;
       Wall->move(x, y);
-      break;
-   case 20: // Вверх
+   } else if (way == ui->GroupMaze->width() / step) { // Вверх
       Wall->setStyleSheet("background-color: Silver; border: 0px;");
       Wall->setFixedSize(2, 20);
       x = x1 + 9;
       y = y1 - 20 + 9;
       Wall->move(x, y);
-      break;
-   case 1: // Влево
+   } else if (way == 1) { // Влево
       Wall->setStyleSheet("background-color: Silver; border: 0px;");
       Wall->setFixedSize(20, 2);
       x = x1 - 20 + 9;
       y = y1 + 9;
       Wall->move(x, y);
-      break;
-   default:
+   } else {
       Wall->deleteLater();
       return;
    }
@@ -291,11 +351,11 @@ void MazeWindow::createWalls()
 {
    // Эта функция ставит стены в нужных местах в уже сгенерированном лабиринте
    for (int id = 0; id <= maxId; id++) {
-      int x = (id % step) * step;
-      int y = (int) (id / step) * step;
+      int x = (id % (ui->GroupMaze->width() / step)) * step;
+      int y = (int) (id / (ui->GroupMaze->width() / step)) * step;
       if (!Cell[id].WasThere)
          continue;
-      if (!Cell[id].Up) {
+      if (!Cell[id].Up && !isCollision(x, y - 1, false)) {
          QLabel *Wall = new QLabel(ui->GroupMaze);
          Wall->setStyleSheet("background-color: black; border: 0px;");
          Wall->setFixedSize(20, 2);
@@ -303,7 +363,7 @@ void MazeWindow::createWalls()
          Wall->show();
          walls.append(Wall);
       }
-      if (!Cell[id].Down) {
+      if (!Cell[id].Down && !isCollision(x, y + step - 1, false)) {
          QLabel *Wall = new QLabel(ui->GroupMaze);
          Wall->setStyleSheet("background-color: black; border: 0px;");
          Wall->setFixedSize(20, 2);
@@ -311,7 +371,7 @@ void MazeWindow::createWalls()
          Wall->show();
          walls.append(Wall);
       }
-      if (!Cell[id].Left) {
+      if (!Cell[id].Left && !isCollision(x - 1, y, true)) {
          QLabel *Wall = new QLabel(ui->GroupMaze);
          Wall->setStyleSheet("background-color: black; border: 0px;");
          Wall->setFixedSize(2, 20);
@@ -319,7 +379,7 @@ void MazeWindow::createWalls()
          Wall->show();
          walls.append(Wall);
       }
-      if (!Cell[id].Right) {
+      if (!Cell[id].Right && !isCollision(x + step - 1, y, true)) {
          QLabel *Wall = new QLabel(ui->GroupMaze);
          Wall->setStyleSheet("background-color: black; border: 0px;");
          Wall->setFixedSize(2, 20);
@@ -331,8 +391,8 @@ void MazeWindow::createWalls()
 }
 void MazeWindow::createMaze()
 {
-   // Эта функция создаёт с помощью алгоритма связи ячеек лабиринта
-
+   //Эта функция ищет нужную клетку для функции Kill
+   maxId = (ui->GroupMaze->height() / step - 1) * (ui->GroupMaze->width() / step) + (ui->GroupMaze->width() / step - 1);
    // Обнуляем лабиринт
    ui->Player->move(ui->GroupMaze->width() - step + PlayerOffset, ui->GroupMaze->height() - step + PlayerOffset);
    for (QLabel *Wall : ui->GroupMaze->findChildren<QLabel *>()) {
@@ -340,31 +400,40 @@ void MazeWindow::createMaze()
          Wall->deleteLater();
    }
    walls.clear();
-   for (int id = 0; id <= maxId; id++) {
-      Cell[id].WasThere = false;
-      Cell[id].Up = false;
-      Cell[id].Left = false;
-      Cell[id].Down = false;
-      Cell[id].Right = false;
+   Cell.clear();
+   for (int id = 0; id < maxId; id++) {
+      cell tempCell = cell();
+      tempCell.WasThere = false;
+      tempCell.Up = false;
+      tempCell.Left = false;
+      tempCell.Down = false;
+      tempCell.Right = false;
+      Cell.push_back(tempCell);
    }
-
    // Алгоритм создания лабиринта Hunt and kill
-   int id = maxId; //Начинаем с ячейки право низ
-   look();
+   kill(maxId); // Запуск с стартовой точки
+   // Hunt
    short int counter = 1;
+   errorCounter = 0;
    while (counter <= maxId) {
+      errorCounter++;
+      if (errorCounter > maxCols * maxRows) {
+         qDebug() << "Error: Бесконечный цикл while в функции createMaze";
+         break;
+      }
       bool found = false;
       counter = 0;
-      for (id = 0; id <= maxId; id++) {
+      for (int id = 0; id <= maxId; id++) {
          if (Cell[id].WasThere) {
             counter++;
-            int x1 = (id % step) * step;
-            int y1 = (int) (id / step) * step;
+            int x1 = (id % (ui->GroupMaze->width() / step)) * step;
+            int y1 = (int) (id / (ui->GroupMaze->width() / step)) * step;
 
-            unsigned short int id1 = ((x1 + 20) / step) + y1;
-            unsigned short int id2 = ((x1 - 20) / step) + y1;
-            unsigned short int id3 = (x1 / step) + y1 + 20;
-            unsigned short int id4 = (x1 / step) + y1 - 20;
+            unsigned short int id1 = (y1 / step) * (ui->GroupMaze->width() / step) + ((x1 + step) / step);
+            unsigned short int id2 = (y1 / step) * (ui->GroupMaze->width() / step) + ((x1 - step) / step);
+            unsigned short int id3 = ((y1 + step) / step) * (ui->GroupMaze->width() / step) + (x1 / step);
+            unsigned short int id4 = ((y1 - step) / step) * (ui->GroupMaze->width() / step) + (x1 / step);
+
             if (id1 > maxId)
                id1 = maxId;
             if (id2 > maxId)
@@ -375,7 +444,7 @@ void MazeWindow::createMaze()
                id4 = maxId;
 
             if (!Cell[id1].WasThere || !Cell[id2].WasThere || !Cell[id3].WasThere || !Cell[id4].WasThere) {
-               look(id);
+               kill(id);
                found = true;
             }
          }
@@ -386,40 +455,46 @@ void MazeWindow::createMaze()
    }
    createWalls();
 }
-void MazeWindow::look(short int id)
+void MazeWindow::kill(short int id)
 {
-   //Эта функция ищет нужную клетку для алгоритма Hunt and Kill
+   // Эта функция прокладывает рандомный маршрут с полученой точки лабиринта
    bool Stuck = false;
+   errorCounter = 0;
    while (!Stuck) {
+      errorCounter++;
+      if (errorCounter > maxCols * maxRows) {
+         qDebug() << "Error: Бесконечный цикл while в функции kill";
+         break;
+      }
       int newId;
       Cell[id].WasThere = true;
-      int x = (id % step) * step;
-      int y = (int) (id / step) * step;
+      int x = (id % (ui->GroupMaze->width() / step)) * step;
+      int y = (int) (id / (ui->GroupMaze->width() / step)) * step;
 
       QVector<short int> AllowedWays = {};
 
       if (x + step < ui->GroupMaze->width()) { //Можем направо
          int newx = x + step;
-         newId = (newx / step) + y;
+         newId = (y / step) * (ui->GroupMaze->width() / step) + (newx / step);
          if (!Cell[newId].WasThere)
             AllowedWays.push_back(4);
       }
       if (x - step >= 0) { //Можем налево
          int newx = x - step;
-         newId = (newx / step) + y;
+         newId = (y / step) * (ui->GroupMaze->width() / step) + (newx / step);
          if (!Cell[newId].WasThere)
             AllowedWays.push_back(2);
       }
       if (y + step < ui->GroupMaze->height()) { //Можем вниз
          Stuck = false;
          int newy = y + step;
-         newId = (x / step) + newy;
+         newId = (newy / step) * (ui->GroupMaze->width() / step) + (x / step);
          if (!Cell[newId].WasThere)
             AllowedWays.push_back(3);
       }
       if (y - step >= 0) { //Можем вверх
          int newy = y - step;
-         newId = (x / step) + newy;
+         newId = (newy / step) * (ui->GroupMaze->width() / step) + (x / step);
          if (!Cell[newId].WasThere)
             AllowedWays.push_back(1);
       }
@@ -430,25 +505,25 @@ void MazeWindow::look(short int id)
          case 1: //Up
             Cell[id].Up = true;
             y -= step;
-            newId = (x / step) + y;
+            newId = (y / step) * (ui->GroupMaze->width() / step) + (x / step);
             Cell[newId].Down = true;
             break;
          case 2: //Left
             Cell[id].Left = true;
             x -= step;
-            newId = (x / step) + y;
+            newId = (y / step) * (ui->GroupMaze->width() / step) + (x / step);
             Cell[newId].Right = true;
             break;
          case 3: //Down
             Cell[id].Down = true;
             y += step;
-            newId = (x / step) + y;
+            newId = (y / step) * (ui->GroupMaze->width() / step) + (x / step);
             Cell[newId].Up = true;
             break;
          case 4: //Right
             Cell[id].Right = true;
             x += step;
-            newId = (x / step) + y;
+            newId = (y / step) * (ui->GroupMaze->width() / step) + (x / step);
             Cell[newId].Left = true;
             break;
          }
@@ -468,9 +543,9 @@ void MazeWindow::keyPressEvent(QKeyEvent *event)
    case Qt::Key_Up:
       ui->Player->setStyleSheet("image: url(:/image/PlayerUp.png);");
       if (ui->Player->y() - PlayerOffset - step >= 0 && !isCollision(ui->Player->x() - PlayerOffset, ui->Player->y() - PlayerOffset - 1, false)) {
-         id = ((ui->Player->x() - PlayerOffset) / step) + ui->Player->y() - PlayerOffset;
+         id = ((ui->Player->y() - PlayerOffset) / step) * (ui->GroupMaze->width() / step) + ((ui->Player->x() - PlayerOffset) / step);
          ui->Player->move(ui->Player->x(), ui->Player->y() - step);
-         newId = ((ui->Player->x() - PlayerOffset) / step) + ui->Player->y() - PlayerOffset;
+         newId = ((ui->Player->y() - PlayerOffset) / step) * (ui->GroupMaze->width() / step) + ((ui->Player->x() - PlayerOffset) / step);
          createWayMarker(id, newId);
       }
       break;
@@ -478,9 +553,9 @@ void MazeWindow::keyPressEvent(QKeyEvent *event)
    case Qt::Key_Left:
       ui->Player->setStyleSheet("image: url(:/image/PlayerLeft.png);");
       if (ui->Player->x() - PlayerOffset - step >= 0 && !isCollision(ui->Player->x() - PlayerOffset - 1, ui->Player->y() - PlayerOffset, true)) {
-         id = ((ui->Player->x() - PlayerOffset) / step) + ui->Player->y() - PlayerOffset;
+         id = ((ui->Player->y() - PlayerOffset) / step) * (ui->GroupMaze->width() / step) + ((ui->Player->x() - PlayerOffset) / step);
          ui->Player->move(ui->Player->x() - step, ui->Player->y());
-         newId = ((ui->Player->x() - PlayerOffset) / step) + ui->Player->y() - PlayerOffset;
+         newId = ((ui->Player->y() - PlayerOffset) / step) * (ui->GroupMaze->width() / step) + ((ui->Player->x() - PlayerOffset) / step);
          createWayMarker(id, newId);
       }
       break;
@@ -488,9 +563,9 @@ void MazeWindow::keyPressEvent(QKeyEvent *event)
    case Qt::Key_Down:
       ui->Player->setStyleSheet("image: url(:/image/PlayerDown.png);");
       if (ui->Player->y() - PlayerOffset + step < ui->GroupMaze->height() && !isCollision(ui->Player->x() - PlayerOffset, ui->Player->y() - PlayerOffset + step - 1, false)) {
-         id = ((ui->Player->x() - PlayerOffset) / step) + ui->Player->y() - PlayerOffset;
+         id = ((ui->Player->y() - PlayerOffset) / step) * (ui->GroupMaze->width() / step) + ((ui->Player->x() - PlayerOffset) / step);
          ui->Player->move(ui->Player->x(), ui->Player->y() + step);
-         newId = ((ui->Player->x() - PlayerOffset) / step) + ui->Player->y() - PlayerOffset;
+         newId = ((ui->Player->y() - PlayerOffset) / step) * (ui->GroupMaze->width() / step) + ((ui->Player->x() - PlayerOffset) / step);
          createWayMarker(id, newId);
       }
       break;
@@ -498,9 +573,9 @@ void MazeWindow::keyPressEvent(QKeyEvent *event)
    case Qt::Key_Right:
       ui->Player->setStyleSheet("image: url(:/image/PlayerRight.png);");
       if (ui->Player->x() - PlayerOffset + step < ui->GroupMaze->width() && !isCollision(ui->Player->x() - PlayerOffset + step - 1, ui->Player->y() - PlayerOffset, true)) {
-         id = ((ui->Player->x() - PlayerOffset) / step) + ui->Player->y() - PlayerOffset;
+         id = ((ui->Player->y() - PlayerOffset) / step) * (ui->GroupMaze->width() / step) + ((ui->Player->x() - PlayerOffset) / step);
          ui->Player->move(ui->Player->x() + step, ui->Player->y());
-         newId = ((ui->Player->x() - PlayerOffset) / step) + ui->Player->y() - PlayerOffset;
+         newId = ((ui->Player->y() - PlayerOffset) / step) * (ui->GroupMaze->width() / step) + ((ui->Player->x() - PlayerOffset) / step);
          createWayMarker(id, newId);
       }
       break;
@@ -509,57 +584,62 @@ void MazeWindow::keyPressEvent(QKeyEvent *event)
       break;
    }
    ui->Player->raise();
-   if (ui->Player->x() - PlayerOffset == ui->label_Finish->x() - (ui->GroupMaze->x() + 1) && ui->Player->y() - PlayerOffset == ui->label_Finish->y() - (ui->GroupMaze->y() + 1)) {
-      Finished++;
-      checkRank();
+   if (ui->Player->pos() - QPoint(PlayerOffset, PlayerOffset) == ui->label_Finish->pos() - (ui->GroupMaze->pos() + QPoint(1, 1))) {
+      score += (double) ((ui->GroupMaze->width() / step) * (ui->GroupMaze->height() / step)) / (double) (step * step);
+      errorCounter = 0;
+      do {
+         errorCounter++;
+         if (errorCounter > 100) {
+            qDebug() << "Error: Бесконечный цикл while в функции keyPressEvent";
+            break;
+         }
+         ui->label_Finish->move((ui->GroupMaze->x() + 1) + (randomGenerator->bounded(0, (ui->GroupMaze->width() / step)) * step),
+                                (ui->GroupMaze->y() + 1) + (randomGenerator->bounded(0, (ui->GroupMaze->height() / step)) * step));
+      } while (ui->Player->pos() - QPoint(PlayerOffset, PlayerOffset) == ui->label_Finish->pos() - (ui->GroupMaze->pos() + QPoint(1, 1)));
+      createMaze();
       balanceChange(markers * 5);
       markers = 0;
-      ui->label_Finish->setGeometry((ui->GroupMaze->x() + 1) + randomGenerator->bounded(0, 20) * step,
-                                    (ui->GroupMaze->y() + 1) + randomGenerator->bounded(0, 20) * step,
-                                    ui->label_Finish->width(),
-                                    ui->label_Finish->height());
-      createMaze();
    }
    QMainWindow::keyPressEvent(event);
 }
 void MazeWindow::checkRank()
 {
    QString tempRank = "";
-   if (Finished >= 1000)
+   if (score >= 1000)
       tempRank = ":/image/Rank18.png";
-   else if (Finished >= 800)
+   else if (score >= 800)
       tempRank = ":/image/Rank17.png";
-   else if (Finished >= 700)
+   else if (score >= 700)
       tempRank = ":/image/Rank16.png";
-   else if (Finished >= 600)
+   else if (score >= 600)
       tempRank = ":/image/Rank15.png";
-   else if (Finished >= 500)
+   else if (score >= 500)
       tempRank = ":/image/Rank14.png";
-   else if (Finished >= 400)
+   else if (score >= 400)
       tempRank = ":/image/Rank13.png";
-   else if (Finished >= 340)
+   else if (score >= 340)
       tempRank = ":/image/Rank12.png";
-   else if (Finished >= 250)
+   else if (score >= 250)
       tempRank = ":/image/Rank11.png";
-   else if (Finished >= 190)
+   else if (score >= 190)
       tempRank = ":/image/Rank10.png";
-   else if (Finished >= 150)
+   else if (score >= 150)
       tempRank = ":/image/Rank9.png";
-   else if (Finished >= 120)
+   else if (score >= 120)
       tempRank = ":/image/Rank8.png";
-   else if (Finished >= 90)
+   else if (score >= 90)
       tempRank = ":/image/Rank7.png";
-   else if (Finished >= 65)
+   else if (score >= 65)
       tempRank = ":/image/Rank6.png";
-   else if (Finished >= 40)
+   else if (score >= 40)
       tempRank = ":/image/Rank5.png";
-   else if (Finished >= 30)
+   else if (score >= 30)
       tempRank = ":/image/Rank4.png";
-   else if (Finished >= 20)
+   else if (score >= 20)
       tempRank = ":/image/Rank3.png";
-   else if (Finished >= 10)
+   else if (score >= 10)
       tempRank = ":/image/Rank2.png";
-   else if (Finished > 0)
+   else if (score > 0)
       tempRank = ":/image/Rank1.png";
    ui->label_Rank->setPixmap(QPixmap(tempRank));
 }

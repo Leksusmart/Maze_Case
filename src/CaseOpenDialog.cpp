@@ -164,7 +164,7 @@ void CaseOpenDialog::StartAnimation()
 
    QWidget *container = ui->scrollArea->widget();
    animation = new QPropertyAnimation(container, "pos");
-   QPoint endPos(0 - ((164 + 6) * 30) + parent->randomGenerator->bounded(0, 116), 0);
+   QPoint endPos(0 - ((164 + 6) * 30) + parent->randomGenerator->bounded(0, 114), 0);
    animation->setEndValue(endPos);
 
    animation->setDuration(10000);
