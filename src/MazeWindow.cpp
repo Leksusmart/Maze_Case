@@ -4,6 +4,7 @@
 #include "ui_MazeWindow.h"
 
 #include <QDebug>
+#include <QDir>
 #include <QFile>
 #include <QGraphicsOpacityEffect>
 #include <QJsonArray>
@@ -150,6 +151,17 @@ void MazeWindow::createData()
 }
 bool MazeWindow::saveData()
 {
+   // Создаем QDir для работы с директориями
+   QDir dir(QFileInfo(filePath).absolutePath());
+
+   // Проверяем, существует ли директория, если нет, создаем ее
+   if (!dir.exists()) {
+      if (!dir.mkpath(".")) { // Создает все необходимые директории
+         qDebug() << "saveData: Не удалось создать директории по пути" << dir.absolutePath();
+         return false;
+      }
+   }
+
    QFile file(filePath);
    if (file.open(QIODevice::WriteOnly)) {
       // Сохранение текущих настроек
