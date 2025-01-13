@@ -268,6 +268,12 @@ void MazeWindow::putInventory(QString photo, QString name, bool isCase, int cost
       }
       update();
    });
+   for (int i = 0; i < Inventory.size(); ++i) {
+      int row = i / (int) ((width() + 5) / (166 + 15));
+      int column = i % (int) ((width() + 5) / (166 + 15));
+      ui->gridLayout->removeWidget(Inventory[i]);
+      ui->gridLayout->addWidget(Inventory[i], row, column);
+   }
    update();
 }
 void MazeWindow::getInventory(int index)
