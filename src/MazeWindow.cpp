@@ -132,8 +132,8 @@ void MazeWindow::resizeEvent(QResizeEvent *event)
 
    // Инвентарь
    for (int i = 0; i < Inventory.size(); ++i) {
-      int row = i / (int) ((width() + 5) / (166 + 15));
-      int column = i % (int) ((width() + 5) / (166 + 15));
+      int row = i / (int) ((this->width() + 5) / (166 + 15));
+      int column = i % (int) ((this->width() + 5) / (166 + 15));
       ui->gridLayout->removeWidget(Inventory[i]);
       ui->gridLayout->addWidget(Inventory[i], row, column);
    }
@@ -281,8 +281,8 @@ void MazeWindow::putInventory(QString photo, QString name, bool isCase, int cost
       update();
    });
    for (int i = 0; i < Inventory.size(); ++i) {
-      int row = i / (int) ((width() + 5) / (166 + 15));
-      int column = i % (int) ((width() + 5) / (166 + 15));
+      int row = i / (int) ((this->width() + 5) / (166 + 15));
+      int column = i % (int) ((this->width() + 5) / (166 + 15));
       ui->gridLayout->removeWidget(Inventory[i]);
       ui->gridLayout->addWidget(Inventory[i], row, column);
    }

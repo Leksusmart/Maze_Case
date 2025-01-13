@@ -359,7 +359,7 @@ QPushButton::pressed {
        <enum>Qt::FocusPolicy::StrongFocus</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="page_Maze">
        <layout class="QHBoxLayout" name="horizontalLayout_9">
@@ -822,12 +822,12 @@ background-color: rgb(77, 102, 17);</string>
            <x>0</x>
            <y>0</y>
            <width>784</width>
-           <height>841</height>
+           <height>839</height>
           </rect>
          </property>
          <layout class="QGridLayout" name="gridLayout">
           <property name="sizeConstraint">
-           <enum>QLayout::SizeConstraint::SetMaximumSize</enum>
+           <enum>QLayout::SizeConstraint::SetMinimumSize</enum>
           </property>
           <property name="leftMargin">
            <number>5</number>
@@ -839,7 +839,7 @@ background-color: rgb(77, 102, 17);</string>
            <number>5</number>
           </property>
           <property name="bottomMargin">
-           <number>5</number>
+           <number>3</number>
           </property>
           <property name="horizontalSpacing">
            <number>0</number>
