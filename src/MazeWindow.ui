@@ -1127,20 +1127,38 @@ border: 0;</string>
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>800</width>
+           <width>784</width>
            <height>448</height>
           </rect>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout">
+          <property name="spacing">
+           <number>5</number>
+          </property>
+          <property name="leftMargin">
+           <number>5</number>
+          </property>
+          <property name="topMargin">
+           <number>5</number>
+          </property>
+          <property name="rightMargin">
+           <number>5</number>
+          </property>
+          <property name="bottomMargin">
+           <number>5</number>
+          </property>
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout">
+            <property name="spacing">
+             <number>5</number>
+            </property>
             <item>
              <spacer name="horizontalSpacer">
               <property name="orientation">
                <enum>Qt::Orientation::Horizontal</enum>
               </property>
               <property name="sizeType">
-               <enum>QSizePolicy::Policy::Minimum</enum>
+               <enum>QSizePolicy::Policy::Expanding</enum>
               </property>
               <property name="sizeHint" stdset="0">
                <size>
@@ -1198,7 +1216,7 @@ border: 0;</string>
               </property>
               <property name="maximumSize">
                <size>
-                <width>16777215</width>
+                <width>360</width>
                 <height>100</height>
                </size>
               </property>
@@ -1264,7 +1282,7 @@ QPushButton::pressed {
                <enum>Qt::Orientation::Horizontal</enum>
               </property>
               <property name="sizeType">
-               <enum>QSizePolicy::Policy::Minimum</enum>
+               <enum>QSizePolicy::Policy::Expanding</enum>
               </property>
               <property name="sizeHint" stdset="0">
                <size>
@@ -1278,13 +1296,16 @@ QPushButton::pressed {
           </item>
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_2">
+            <property name="spacing">
+             <number>5</number>
+            </property>
             <item>
              <spacer name="horizontalSpacer_3">
               <property name="orientation">
                <enum>Qt::Orientation::Horizontal</enum>
               </property>
               <property name="sizeType">
-               <enum>QSizePolicy::Policy::Minimum</enum>
+               <enum>QSizePolicy::Policy::Expanding</enum>
               </property>
               <property name="sizeHint" stdset="0">
                <size>
@@ -1342,7 +1363,7 @@ QPushButton::pressed {
               </property>
               <property name="maximumSize">
                <size>
-                <width>16777215</width>
+                <width>360</width>
                 <height>100</height>
                </size>
               </property>
@@ -1408,7 +1429,7 @@ QPushButton::pressed {
                <enum>Qt::Orientation::Horizontal</enum>
               </property>
               <property name="sizeType">
-               <enum>QSizePolicy::Policy::Minimum</enum>
+               <enum>QSizePolicy::Policy::Expanding</enum>
               </property>
               <property name="sizeHint" stdset="0">
                <size>
@@ -1422,13 +1443,16 @@ QPushButton::pressed {
           </item>
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_3">
+            <property name="spacing">
+             <number>5</number>
+            </property>
             <item>
              <spacer name="horizontalSpacer_5">
               <property name="orientation">
                <enum>Qt::Orientation::Horizontal</enum>
               </property>
               <property name="sizeType">
-               <enum>QSizePolicy::Policy::Minimum</enum>
+               <enum>QSizePolicy::Policy::Expanding</enum>
               </property>
               <property name="sizeHint" stdset="0">
                <size>
@@ -1486,7 +1510,7 @@ QPushButton::pressed {
               </property>
               <property name="maximumSize">
                <size>
-                <width>16777215</width>
+                <width>360</width>
                 <height>100</height>
                </size>
               </property>
@@ -1552,7 +1576,7 @@ QPushButton::pressed {
                <enum>Qt::Orientation::Horizontal</enum>
               </property>
               <property name="sizeType">
-               <enum>QSizePolicy::Policy::Minimum</enum>
+               <enum>QSizePolicy::Policy::Expanding</enum>
               </property>
               <property name="sizeHint" stdset="0">
                <size>

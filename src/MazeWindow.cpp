@@ -83,10 +83,11 @@ MazeWindow::MazeWindow(QWidget *parent)
    loadData();
    update();
    createMaze();
-   setFocus();
 }
 void MazeWindow::update()
 {
+   setFocus();
+
    // Вычесление максимальных значений
    QSize screen = this->screen()->size();
    maxCols = (int) (screen.width() - (6 + ui->labelStatic_Hint->width() + 6 + 6 + ui->label_Size->width() + 6)) / step;
@@ -101,6 +102,8 @@ void MazeWindow::update()
    int oldy = ui->GroupMaze->y();
    ui->GroupMaze->move(QPoint(1, 0));
    ui->label_Finish->move(ui->label_Finish->x() + ui->GroupMaze->x() - oldx, ui->label_Finish->y() + ui->GroupMaze->y() - oldy);
+   if (ui->label_Finish->x() >= ui->GroupMaze->width() || ui->label_Finish->y() >= ui->GroupMaze->height())
+      ui->label_Finish->move(ui->GroupMaze->x() + 1, ui->GroupMaze->y() + 1);
 
    // Обновление рамки лабиринта
    int x = ui->GroupMaze->x() - 1;
@@ -130,6 +133,7 @@ void MazeWindow::resizeEvent(QResizeEvent *event)
    for (int i = 0; i < Inventory.size(); ++i) {
       int row = i / (int) ((width() + 5) / (166 + 15));
       int column = i % (int) ((width() + 5) / (166 + 15));
+      ui->gridLayout->removeWidget(Inventory[i]);
       ui->gridLayout->addWidget(Inventory[i], row, column);
    }
    // Всё остальное в функции
@@ -262,13 +266,9 @@ void MazeWindow::putInventory(QString photo, QString name, bool isCase, int cost
          CaseOpenDialog *w = new CaseOpenDialog(this, Case_Index);
          w->exec();
       }
+      update();
    });
-   for (int i = 0; i < Inventory.size(); ++i) {
-      int row = i / (int) ((width() + 5) / (166 + 15));
-      int column = i % (int) ((width() + 5) / (166 + 15));
-      ui->gridLayout->removeWidget(Inventory[i]);
-      ui->gridLayout->addWidget(Inventory[i], row, column);
-   }
+   update();
 }
 void MazeWindow::getInventory(int index)
 {
