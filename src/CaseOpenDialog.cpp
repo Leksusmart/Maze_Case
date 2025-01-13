@@ -160,7 +160,7 @@ void CaseOpenDialog::CreateCase()
 }
 void CaseOpenDialog::StartAnimation()
 {
-   ui->Button_Open->setVisible(false);
+   ui->Button_Open->hide();
 
    QWidget *container = ui->scrollArea->widget();
    animation = new QPropertyAnimation(container, "pos");
@@ -173,7 +173,6 @@ void CaseOpenDialog::StartAnimation()
    connect(animationTimer, &QTimer::timeout, this, [this]() {
       animationTimer->deleteLater();
       animationTimer = nullptr;
-      ui->Button_Open->setVisible(true);
       MazeWindow::item *rez = new MazeWindow::item;
       do {
          if (parent->itemDetails.contains(reward)) {
@@ -218,7 +217,6 @@ void CaseOpenDialog::closeEvent(QCloseEvent *event)
 {
    if (animationTimer != nullptr) {
       animationTimer->stop();
-      ui->Button_Open->setVisible(true);
       MazeWindow::item *rez = new MazeWindow::item;
       do {
          if (parent->itemDetails.contains(reward)) {
