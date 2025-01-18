@@ -181,12 +181,14 @@ bool MazeWindow::saveData()
    QJsonArray inventoryArray;
    for (const auto &item : Items) {
       QJsonObject itemObject;
+
       itemObject["name"] = item->name;
       itemObject["photo"] = item->photo;
       itemObject["isCase"] = item->isCase;
       itemObject["cost"] = item->cost;
-      itemObject["Float"] = QString::number(item->Float, 'f', 9).toDouble();
-      itemObject["index"] = item->index;
+      if (!item->isCase) {
+         itemObject["Float"] = QString::number(item->Float, 'f', 9).toDouble();
+      }
 
       inventoryArray.append(itemObject);
    }
@@ -225,14 +227,16 @@ bool MazeWindow::loadData()
          for (const auto &inventoryValue : inventoryArray) {
             QJsonObject item = inventoryValue.toObject();
 
+            bool isCase = item["isCase"].toBool();
             QString name = item["name"].toString();
             QString photo = item["photo"].toString();
-            bool isCase = item["isCase"].toBool();
             int cost = item["cost"].toInt();
-            float Float = item["Float"].toDouble();
-            int index = item["index"].toInt();
-
-            putInventory(photo, name, isCase, cost, Float);
+            if (isCase) {
+               putInventory(photo, name, isCase, cost);
+            } else {
+               float Float = item["Float"].toDouble();
+               putInventory(photo, name, isCase, cost, Float);
+            }
          }
       }
       if (data.contains("score"))
@@ -275,17 +279,17 @@ void MazeWindow::putInventory(QString photo, QString name, bool isCase, int cost
    newitem->isCase = isCase;
    newitem->Float = Float;
    newitem->cost = cost;
-   newitem->index = Inventory.indexOf(itemButton);
    Items.push_back(newitem);
 
    connect(itemButton, &QPushButton::clicked, [this, itemButton, newitem, photo]() {
       int index = Inventory.indexOf(itemButton);
-      ItemInfoDialog w(this, *newitem, index);
+      ItemInfoDialog a(this, *newitem, index);
       int Case_Index = QString(photo[photo.indexOf("item") + 4]).toInt();
-      if (w.exec() == QDialog::Accepted) {
+      if (a.exec() == QDialog::Accepted) {
          //Открыть новое окно с опенингом кейса
-         CaseOpenDialog *w = new CaseOpenDialog(this, Case_Index);
-         w->exec();
+         CaseOpenDialog *b = new CaseOpenDialog(this, Case_Index);
+         b->exec();
+         b->deleteLater();
       }
       update();
    });

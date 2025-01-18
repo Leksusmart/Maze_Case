@@ -196,7 +196,6 @@ void CaseOpenDialog::StartAnimation()
             rez->isCase = false;
             rez->Float = -1;
             rez->cost = 0;
-            rez->index = -1;
          }
       } while (rez->cost == -1);
       QString OldBalance = parent->ui->label_Balance->text();
@@ -240,10 +239,12 @@ void CaseOpenDialog::closeEvent(QCloseEvent *event)
             rez->isCase = false;
             rez->Float = -1;
             rez->cost = 0;
-            rez->index = -1;
          }
       } while (rez->cost == -1);
       parent->putInventory(reward, rez->name, rez->isCase, rez->cost, rez->Float);
+      this->reject();
+   } else {
+      animationTimer->deleteLater();
       this->reject();
    }
    event->accept();
@@ -251,6 +252,5 @@ void CaseOpenDialog::closeEvent(QCloseEvent *event)
 CaseOpenDialog::~CaseOpenDialog()
 {
    animation->deleteLater();
-   animationTimer->deleteLater();
    delete ui;
 }

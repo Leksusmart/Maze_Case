@@ -31,7 +31,6 @@ public:
       bool isCase = false;
       float Float;
       int cost;
-      int index;
    };
 public slots:
    bool balanceChange(int value);
