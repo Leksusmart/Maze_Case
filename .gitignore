@@ -1,7 +1,2 @@
 /dest
-.log
-.json
-.exe
 CMakeLists.txt.user
-.txt.user
-.user
