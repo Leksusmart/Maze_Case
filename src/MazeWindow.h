@@ -74,7 +74,7 @@ private:
    unsigned short int PlayerOffset = 2;
 
    //Data
-   const QString filePath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + "/Leksusmart Games/Maze_Case/data.json";
+   const QString filePath = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation).section('/', 0, -2) + "/Leksusmart Games/Maze Case/data.json";
    QJsonObject data;
 
 public:
