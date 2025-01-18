@@ -31,14 +31,17 @@ MazeWindow::MazeWindow(QWidget *parent)
    //Подключение кнопок
    connect(ui->pushButton_Play, &QPushButton::clicked, this, [this]() {
       checkRank();
+      update();
       ui->stackedWidget->setCurrentIndex(0);
    });
    connect(ui->pushButton_Inventory, &QPushButton::clicked, this, [this]() {
       ui->label_Rank->setPixmap(QPixmap());
+      update();
       ui->stackedWidget->setCurrentIndex(1);
    });
    connect(ui->pushButton_Store, &QPushButton::clicked, this, [this]() {
       ui->label_Rank->setPixmap(QPixmap());
+      update();
       ui->stackedWidget->setCurrentIndex(2);
    });
    connect(ui->pushButton_Buy_Item1, &QPushButton::clicked, this, [this]() {

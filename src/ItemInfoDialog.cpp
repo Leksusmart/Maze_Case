@@ -48,7 +48,8 @@ ItemInfoDialog::ItemInfoDialog(MazeWindow *parent, MazeWindow::item current_Item
    else
       ui->label_Float_Name->setText("Прямо с завода");
 
-   ui->label_Photo->setPixmap(QPixmap(current_Item.photo).scaled(ui->label_Photo->size(), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation));
+   ui->label_Photo->setPixmap(QPixmap(current_Item.photo).scaled(ui->label_Photo->size(), Qt::KeepAspectRatioByExpanding, Qt::FastTransformation));
+   ui->label_Photo->raise();
    ui->label_Photo->setScaledContents(true);
 }
 
