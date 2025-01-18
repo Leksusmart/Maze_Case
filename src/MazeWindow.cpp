@@ -87,6 +87,7 @@ MazeWindow::MazeWindow(QWidget *parent)
    loadData();
    update();
    createMaze();
+   ui->stackedWidget->setCurrentIndex(0);
 }
 void MazeWindow::update()
 {
@@ -124,6 +125,8 @@ void MazeWindow::update()
    // Ограничение окна
    ui->groupBox->setMinimumSize(ui->GroupMaze->size() + QSize(2, 1));
    ui->stackedWidget->setMinimumSize(ui->groupBox->width(), ui->groupBox->height());
+   ui->scrollArea_Inventory->resize(ui->stackedWidget->size());
+   ui->scrollArea_Store->resize(ui->stackedWidget->size());
    this->setMinimumWidth(6 + ui->labelStatic_Hint->width() + 6 + ui->groupBox->width() + 6 + ui->label_Size->width() + 6);
    this->setMinimumHeight(5 + ui->groupBox->height() + ui->label_Balance->height() + ui->pushButton_Inventory->height());
 }
