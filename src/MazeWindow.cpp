@@ -157,48 +157,51 @@ void MazeWindow::createData()
 }
 bool MazeWindow::saveData()
 {
-   // Создаем QDir для работы с директориями
    QDir dir(QFileInfo(filePath).absolutePath());
 
-   // Проверяем, существует ли директория, если нет, создаем ее
    if (!dir.exists()) {
-      if (!dir.mkpath(".")) { // Создает все необходимые директории
+      if (!dir.mkpath(".")) {
          qDebug() << "saveData: Не удалось создать директории по пути" << dir.absolutePath();
          return false;
       }
    }
 
    QFile file(filePath);
-   if (file.open(QIODevice::WriteOnly)) {
-      // Сохранение текущих настроек
-      data["balance"] = ui->label_Balance->text();
-
-      // Сохранение инвентаря
-      QJsonArray inventoryArray;
-      for (const auto &item : Items) {
-         QJsonObject itemObject;
-         itemObject["name"] = item->name;
-         itemObject["photo"] = item->photo;
-         itemObject["isCase"] = item->isCase;
-         itemObject["cost"] = item->cost;
-         itemObject["Float"] = QString::number(item->Float, 'f', 9).toDouble();
-         itemObject["index"] = item->index;
-
-         inventoryArray.append(itemObject);
-      }
-      data["inventory"] = inventoryArray;
-      data["score"] = QJsonValue::fromVariant(static_cast<double>(score));
-
-      QJsonDocument doc(data);
-      file.write(doc.toJson());
-      file.close();
-      return true;
-   } else {
+   if (!file.open(QIODevice::WriteOnly)) {
       qDebug() << "saveData: Файл не может быть открыт для записи";
       createData();
-      saveData();
       return false;
    }
+
+   // Сохранение текущих настроек
+   data["balance"] = ui->label_Balance->text();
+   data["score"] = QJsonValue::fromVariant(static_cast<double>(score));
+
+   // Сохранение инвентаря
+   QJsonArray inventoryArray;
+   for (const auto &item : Items) {
+      QJsonObject itemObject;
+      itemObject["name"] = item->name;
+      itemObject["photo"] = item->photo;
+      itemObject["isCase"] = item->isCase;
+      itemObject["cost"] = item->cost;
+      itemObject["Float"] = QString::number(item->Float, 'f', 9).toDouble();
+      itemObject["index"] = item->index;
+
+      inventoryArray.append(itemObject);
+   }
+   data["inventory"] = inventoryArray;
+
+   QJsonDocument doc(data);
+   qint64 bytesWritten = file.write(doc.toJson());
+   file.close();
+
+   if (bytesWritten == -1) {
+      qDebug() << "saveData: Количество байт в файле не соответствует тому что мы записали";
+      return false;
+   }
+
+   return true;
 }
 bool MazeWindow::loadData()
 {
@@ -296,18 +299,22 @@ void MazeWindow::putInventory(QString photo, QString name, bool isCase, int cost
 }
 void MazeWindow::getInventory(int index)
 {
-   //Эта функция убирает из инвентаря предмет под индексом
+   // Эта функция убирает из инвентаря предмет под индексом
    if (index < 0 || index >= Inventory.size()) {
       return;
    }
+
+   // Удаляем элемент из вектора Items
    if (index < Items.size()) {
-      Items.removeAt(index); // Удаляем элемент из вектора Items
+      Items.removeAt((Items.size() - 1) - index);
    }
 
+   // Удаляем предмет из инвентаря
    QPushButton *itemButton = Inventory.takeAt(index);
    ui->gridLayout->removeWidget(itemButton);
    itemButton->deleteLater();
 
+   // Обновляем расположение оставшихся предметов в инвентаре
    for (int i = index; i < Inventory.size(); ++i) {
       ui->gridLayout->removeWidget(Inventory[i]);
       int newRow = i / (int) ((width() + 5) / (166 + 15));
