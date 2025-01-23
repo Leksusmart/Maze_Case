@@ -175,30 +175,36 @@ void CaseOpenDialog::StartAnimation()
       animationTimer = nullptr;
       MazeWindow::item *rez = new MazeWindow::item;
       do {
-         if (parent->itemDetails.contains(reward)) {
+         // Ищем элемент в списке
+         auto it = std::find_if(parent->itemDetails.begin(), parent->itemDetails.end(), [this](MazeWindow::ItemDetail &item) { return item.source == this->reward; });
+
+         if (it != parent->itemDetails.end()) {
             rez->photo = reward;
-            rez->name = parent->itemDetails[reward].first;
+            rez->name = it->name;
             Float = parent->randomGenerator->bounded(1.0);
             rez->Float = Float;
             rez->isCase = false;
+
+            // Определяем стоимость на основе Float
             if (Float >= 0.45)
-               rez->cost = parent->itemDetails[reward].second[4].toInt();
+               rez->cost = it->cost[4].toInt();
             else if (Float >= 0.37)
-               rez->cost = parent->itemDetails[reward].second[3].toInt();
+               rez->cost = it->cost[3].toInt();
             else if (Float >= 0.15)
-               rez->cost = parent->itemDetails[reward].second[2].toInt();
+               rez->cost = it->cost[2].toInt();
             else if (Float >= 0.07)
-               rez->cost = parent->itemDetails[reward].second[1].toInt();
+               rez->cost = it->cost[1].toInt();
             else
-               rez->cost = parent->itemDetails[reward].second[0].toInt();
+               rez->cost = it->cost[0].toInt();
          } else {
             rez->name = "Неизвестно";
             rez->isCase = false;
             rez->Float = -1;
-            rez->cost = 0;
+            rez->cost = -1;
          }
       } while (rez->cost == -1);
       QString OldBalance = parent->ui->label_Balance->text();
+
       ItemInfoDialog *s = new ItemInfoDialog(parent, *rez);
 
       int result = s->exec();
@@ -212,28 +218,34 @@ void CaseOpenDialog::StartAnimation()
    });
    animationTimer->start(10000);
 }
+
 void CaseOpenDialog::closeEvent(QCloseEvent *event)
 {
    if (animationTimer != nullptr) {
       animationTimer->stop();
       MazeWindow::item *rez = new MazeWindow::item;
       do {
-         if (parent->itemDetails.contains(reward)) {
+         // Ищем элемент в списке по source
+         auto it = std::find_if(parent->itemDetails.begin(), parent->itemDetails.end(), [this](const MazeWindow::ItemDetail &item) { return item.source == this->reward; });
+
+         if (it != parent->itemDetails.end()) {
             rez->photo = reward;
-            rez->name = parent->itemDetails[reward].first;
+            rez->name = it->name;
             Float = parent->randomGenerator->bounded(1.0);
             rez->Float = Float;
             rez->isCase = false;
+
+            // Определяем стоимость на основе Float
             if (Float >= 0.45)
-               rez->cost = parent->itemDetails[reward].second[4].toInt();
+               rez->cost = it->cost[4].toInt();
             else if (Float >= 0.37)
-               rez->cost = parent->itemDetails[reward].second[3].toInt();
+               rez->cost = it->cost[3].toInt();
             else if (Float >= 0.15)
-               rez->cost = parent->itemDetails[reward].second[2].toInt();
+               rez->cost = it->cost[2].toInt();
             else if (Float >= 0.07)
-               rez->cost = parent->itemDetails[reward].second[1].toInt();
+               rez->cost = it->cost[1].toInt();
             else
-               rez->cost = parent->itemDetails[reward].second[0].toInt();
+               rez->cost = it->cost[0].toInt();
          } else {
             rez->name = "Неизвестно";
             rez->isCase = false;

@@ -16,17 +16,28 @@
 #include <QRandomGenerator>
 #include <QTimer>
 
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QNetworkRequest>
 MazeWindow::MazeWindow(QWidget *parent)
    : QMainWindow(parent)
    , ui(new Ui::MazeWindow)
+   , networkManager(new QNetworkAccessManager(this))
 {
    ui->setupUi(this);
 
    this->setWindowIcon(QIcon("://image/EmptyIcon.png"));
    ui->label_Finish->setPixmap(QPixmap("://image/Finish.png").scaled(ui->label_Finish->size(), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation));
-   ui->label_Item1->setPixmap(QPixmap(ItemPixmaps[1 - 1]).scaled(ui->label_Item1->size(), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation));
-   ui->label_Item2->setPixmap(QPixmap(ItemPixmaps[2 - 1]).scaled(ui->label_Item2->size(), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation));
-   ui->label_Item3->setPixmap(QPixmap(ItemPixmaps[3 - 1]).scaled(ui->label_Item3->size(), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation));
+   ui->label_Item1->setPixmap(QPixmap(itemDetails[1 - 1].source).scaled(ui->label_Item1->size(), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation));
+   ui->label_Item2->setPixmap(QPixmap(itemDetails[2 - 1].source).scaled(ui->label_Item2->size(), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation));
+   ui->label_Item3->setPixmap(QPixmap(itemDetails[3 - 1].source).scaled(ui->label_Item3->size(), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation));
+
+   item Case1{itemDetails[1 - 1].name, itemDetails[1 - 1].source, true, -1, itemDetails[1 - 1].cost[0].toDouble()};
+   item Case2{itemDetails[2 - 1].name, itemDetails[2 - 1].source, true, -1, itemDetails[2 - 1].cost[0].toDouble()};
+   item Case3{itemDetails[3 - 1].name, itemDetails[3 - 1].source, true, -1, itemDetails[3 - 1].cost[0].toDouble()};
+   updatePrice(Case1);
+   updatePrice(Case2);
+   updatePrice(Case3);
 
    //Подключение кнопок
    connect(ui->pushButton_Play, &QPushButton::clicked, this, [this]() {
@@ -88,6 +99,76 @@ MazeWindow::MazeWindow(QWidget *parent)
    update();
    createMaze();
    ui->stackedWidget->setCurrentIndex(0);
+}
+void MazeWindow::updatePrice(MazeWindow::item &item)
+{
+   QString ITEM_ID = "";
+   int index = 0;
+   if (item.Float >= 0.45)
+      index = 4;
+   else if (item.Float >= 0.37)
+      index = 3;
+   else if (item.Float >= 0.15)
+      index = 2;
+   else if (item.Float >= 0.07)
+      index = 1;
+   else
+      index = 0;
+   for (int i = 0; i < itemDetails.size(); i++) {
+      if (itemDetails[i].name == item.name) {
+         ITEM_ID = itemDetails[i].steamID[index];
+         break;
+      }
+   }
+   if (ITEM_ID == "")
+      return;
+
+   // Ищем элемент в списке
+   auto it = std::find_if(itemDetails.begin(), itemDetails.end(), [this, item](MazeWindow::ItemDetail &Item) { return Item.source == item.photo; });
+   if (it->upToDate[index] == true) {
+      item.cost = it->cost[index].toDouble();
+      return;
+   }
+   QString url = QString("https://steamcommunity.com/market/itemordershistogram?&language=english&currency=5&item_nameid=%1").arg(ITEM_ID);
+   qDebug() << url;
+   QNetworkReply *reply = networkManager->get(QNetworkRequest(QUrl(url)));
+
+   connect(reply, &QNetworkReply::finished, [this, reply, &item, index, it]() {
+      if (reply->error() == QNetworkReply::NoError) {
+         QByteArray responseData = reply->readAll();
+         QString jsonString = QString::fromUtf8(responseData);
+
+         QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonString.toUtf8());
+         QJsonObject jsonObj = jsonDoc.object();
+
+         double cost = 0.0;
+         if (jsonObj["lowest_sell_order"].toString() != "") {
+            cost = jsonObj["lowest_sell_order"].toString().toDouble();
+            cost /= 100.0;
+         } else {
+            QJsonArray buyOrderGraph = jsonObj["buy_order_graph"].toArray();
+            QJsonArray firstOrder = buyOrderGraph[0].toArray();
+            cost = firstOrder[0].toDouble();
+         }
+
+         qDebug() << QString("Cost = %1").arg(cost, 0, 'f', 2);
+
+         item.cost = cost;
+         it->cost[index] = QString("%1").arg(cost, 0, 'f', 2);
+         it->upToDate[index] = true;
+
+         if (it->source == itemDetails[1 - 1].source)
+            ui->label_Item1_Name->setText(QString("%1 %2 руб.").arg(itemDetails[1 - 1].name, itemDetails[1 - 1].cost[0]));
+         else if (it->source == itemDetails[2 - 1].source)
+            ui->label_Item2_Name->setText(QString("%1 %2 руб.").arg(itemDetails[2 - 1].name, itemDetails[2 - 1].cost[0]));
+         else if (it->source == itemDetails[3 - 1].source)
+            ui->label_Item3_Name->setText(QString("%1 %2 руб.").arg(itemDetails[3 - 1].name, itemDetails[3 - 1].cost[0]));
+      } else {
+         item.cost = it->cost[index].toDouble();
+         qDebug() << "Ошибка при получении данных:" << reply->errorString();
+      }
+      reply->deleteLater();
+   });
 }
 void MazeWindow::update()
 {

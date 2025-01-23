@@ -359,7 +359,7 @@ QPushButton::pressed {
        <enum>Qt::FocusPolicy::StrongFocus</enum>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="page_Maze">
        <layout class="QHBoxLayout" name="horizontalLayout_9">
