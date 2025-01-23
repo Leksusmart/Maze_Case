@@ -61,7 +61,7 @@ MazeWindow::MazeWindow(QWidget *parent)
       QString Name = ui->label_Item1_Name->text().left(ui->label_Item1_Name->text().size() - (1 + name.size() + 5));
       int cost = name.toInt();
       if (balanceChange(-cost))
-         putInventory(ItemPixmaps[1 - 1], Name, true, cost);
+         putInventory(itemDetails[1 - 1].source, Name, true, cost);
    });
    connect(ui->pushButton_Buy_Item2, &QPushButton::clicked, this, [this]() {
       QString name = ui->label_Item2_Name->text().right(8);
@@ -69,7 +69,7 @@ MazeWindow::MazeWindow(QWidget *parent)
       QString Name = ui->label_Item2_Name->text().left(ui->label_Item2_Name->text().size() - (1 + name.size() + 5));
       int cost = name.toInt();
       if (balanceChange(-cost))
-         putInventory(ItemPixmaps[2 - 1], Name, true, cost);
+         putInventory(itemDetails[2 - 1].source, Name, true, cost);
    });
    connect(ui->pushButton_Buy_Item3, &QPushButton::clicked, this, [this]() {
       QString name = ui->label_Item3_Name->text().right(8);
@@ -77,7 +77,7 @@ MazeWindow::MazeWindow(QWidget *parent)
       QString Name = ui->label_Item3_Name->text().left(ui->label_Item3_Name->text().size() - (1 + name.size() + 5));
       int cost = name.toInt();
       if (balanceChange(-cost))
-         putInventory(ItemPixmaps[3 - 1], Name, true, cost);
+         putInventory(itemDetails[3 - 1].source, Name, true, cost);
    });
    connect(ui->Button_Size, &QPushButton::clicked, this, [this]() {
       // Создание нового лабиринта с выбранным размером + обновление интерфейса
@@ -125,10 +125,7 @@ void MazeWindow::updatePrice(MazeWindow::item &item)
 
    // Ищем элемент в списке
    auto it = std::find_if(itemDetails.begin(), itemDetails.end(), [this, item](MazeWindow::ItemDetail &Item) { return Item.source == item.photo; });
-   if (it->upToDate[index] == true) {
-      item.cost = it->cost[index].toDouble();
-      return;
-   }
+
    QString url = QString("https://steamcommunity.com/market/itemordershistogram?&language=english&currency=5&item_nameid=%1").arg(ITEM_ID);
    qDebug() << url;
    QNetworkReply *reply = networkManager->get(QNetworkRequest(QUrl(url)));
@@ -155,8 +152,6 @@ void MazeWindow::updatePrice(MazeWindow::item &item)
 
          item.cost = cost;
          it->cost[index] = QString("%1").arg(cost, 0, 'f', 2);
-         it->upToDate[index] = true;
-
          if (it->source == itemDetails[1 - 1].source)
             ui->label_Item1_Name->setText(QString("%1 %2 руб.").arg(itemDetails[1 - 1].name, itemDetails[1 - 1].cost[0]));
          else if (it->source == itemDetails[2 - 1].source)

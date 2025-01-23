@@ -21,7 +21,7 @@ CaseOpenDialog::CaseOpenDialog(
 {
    ui->setupUi(this);
    animationTimer = new QTimer(this);
-   this->setWindowIcon(QPixmap(parent->ItemPixmaps[Case_Index - 1]));
+   this->setWindowIcon(QPixmap(parent->itemDetails[Case_Index - 1].source));
    switch (Case_Index) {
    case 1:
       this->setWindowTitle(parent->ui->label_Item1_Name->text().left(parent->ui->label_Item1_Name->text().length() - 9));
@@ -51,7 +51,7 @@ void CaseOpenDialog::CreateCase()
    hLayout->setContentsMargins(0, 2, 0, 2);
 
    // Определяем предметы
-   QString begin = parent->ItemPixmaps[Case_Index - 1];
+   QString begin = parent->itemDetails[Case_Index - 1].source;
    begin.chop(8);
    QVector<QString> ItemsCommon = {
       begin + "Common1.png", // Обычный

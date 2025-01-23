@@ -1,9 +1,11 @@
 #include "ItemInfoDialog.h"
 #include "MazeWindow.h"
 #include "ui_ItemInfoDialog.h"
+#include "ui_MazeWindow.h"
 
 #include <QStyle>
 
+#include <QDesktopServices>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -21,6 +23,27 @@ ItemInfoDialog::ItemInfoDialog(MazeWindow *parent, MazeWindow::item &current_Ite
    this->setWindowTitle("О предмете");
    this->setWindowIcon(style()->standardIcon(QStyle::SP_MessageBoxInformation));
 
+   connect(ui->toolButton, &QToolButton::clicked, this, [this, current_Item, parent]() {
+      auto it = std::find_if(parent->itemDetails.begin(), parent->itemDetails.end(), [this, current_Item](MazeWindow::ItemDetail &Item) { return Item.source == current_Item.photo; });
+      if (current_Item.isCase) {
+         QDesktopServices::openUrl(QUrl("https://steamcommunity.com/market/listings/730/" + it->nameEng));
+         qDebug() << "Opened in browser:" << "https://steamcommunity.com/market/listings/730/" + it->nameEng;
+      } else {
+         QString FloatStr = "";
+         if (current_Item.Float >= 0.45)
+            FloatStr = "(Battle-Scarred)";
+         else if (current_Item.Float >= 0.37)
+            FloatStr = "(Well-Worn)";
+         else if (current_Item.Float >= 0.15)
+            FloatStr = "(Field-Tested)";
+         else if (current_Item.Float >= 0.07)
+            FloatStr = "(Minimal Wear)";
+         else
+            FloatStr = "(Factory New)";
+         QDesktopServices::openUrl(QUrl("https://steamcommunity.com/market/listings/730/" + it->nameEng + " " + FloatStr));
+         qDebug() << "Opened in browser:" << "https://steamcommunity.com/market/listings/730/" + it->nameEng + " " + FloatStr;
+      }
+   });
    connect(ui->pushButton_Sold, &QPushButton::clicked, this, [this, parent, Item_Index, &current_Item]() {
       sold = true;
       if (current_Item.cost == 0) {
@@ -102,11 +125,7 @@ void ItemInfoDialog::updatePrice(MazeWindow::item &item)
 
    // Ищем элемент в списке
    auto it = std::find_if(parent->itemDetails.begin(), parent->itemDetails.end(), [this, item](MazeWindow::ItemDetail &Item) { return Item.source == item.photo; });
-   if (it->upToDate[index] == true) {
-      item.cost = it->cost[index].toDouble();
-      ui->label_Cost->setText(it->cost[index] + " руб.");
-      return;
-   }
+
    ui->labelStatic_Cost->setText("Уточнение...");
    ui->label_Cost->setText("");
 
@@ -138,9 +157,14 @@ void ItemInfoDialog::updatePrice(MazeWindow::item &item)
             ui->label_Cost->setText(QString("%1 руб.").arg(cost, 0, 'f', 2));
             item.cost = cost;
             it->cost[index] = QString("%1").arg(cost, 0, 'f', 2);
-            it->upToDate[index] = true;
 
             ui->labelStatic_Cost->setText("Это стоит:");
+            if (it->source == parent->itemDetails[1 - 1].source)
+               parent->ui->label_Item1_Name->setText(QString("%1 %2 руб.").arg(parent->itemDetails[1 - 1].name, parent->itemDetails[1 - 1].cost[0]));
+            else if (it->source == parent->itemDetails[2 - 1].source)
+               parent->ui->label_Item2_Name->setText(QString("%1 %2 руб.").arg(parent->itemDetails[2 - 1].name, parent->itemDetails[2 - 1].cost[0]));
+            else if (it->source == parent->itemDetails[3 - 1].source)
+               parent->ui->label_Item3_Name->setText(QString("%1 %2 руб.").arg(parent->itemDetails[3 - 1].name, parent->itemDetails[3 - 1].cost[0]));
          } else {
             ui->labelStatic_Cost->setText("Это стоит:");
             ui->label_Cost->setText("~" + it->cost[index] + " руб.");
