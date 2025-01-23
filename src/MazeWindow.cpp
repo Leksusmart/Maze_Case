@@ -759,11 +759,11 @@ void MazeWindow::checkRank()
       tempRank = ":/image/Rank1.png";
    ui->label_Rank->setPixmap(QPixmap(tempRank));
 }
-bool MazeWindow::balanceChange(int value)
+bool MazeWindow::balanceChange(double value)
 {
    QString currentBalanceText = ui->label_Balance->text();
    currentBalanceText.chop(5);
-   int newBalance = currentBalanceText.toInt() + value;
+   double newBalance = currentBalanceText.toDouble() + value;
 
    if (newBalance < 0) {
       QMessageBox::warning(this, "Ошибка", "Недостаточно средств");
@@ -814,7 +814,7 @@ bool MazeWindow::balanceChange(int value)
       if (value > 0) {
          QString currentBalanceText1 = ui->label_Balance->text();
          currentBalanceText1.chop(5);
-         int newBalance = currentBalanceText1.toInt() + value;
+         double newBalance = currentBalanceText1.toDouble() + value;
          ui->label_Balance->setText(QString::number(newBalance) + " руб.");
       }
    });

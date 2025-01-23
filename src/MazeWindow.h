@@ -33,7 +33,7 @@ public:
       double cost;
    };
 public slots:
-   bool balanceChange(int value);
+   bool balanceChange(double value);
    void putInventory(QString photo, QString name, bool isCase, int cost, float Float = -1);
    void getInventory(int index);
 private slots:

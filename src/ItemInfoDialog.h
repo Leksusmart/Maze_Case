@@ -23,6 +23,9 @@ private:
    MazeWindow *parent;
    Ui::ItemInfoDialog *ui;
    int Item_Index = 0;
+   QNetworkAccessManager *networkManager;
+private slots:
+   void closeEvent(QCloseEvent *event) override;
 };
 
 #endif // ITEMINFODIALOG_H
