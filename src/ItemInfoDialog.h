@@ -13,16 +13,17 @@ class ItemInfoDialog : public QDialog
    Q_OBJECT
 
 public:
-   explicit ItemInfoDialog(MazeWindow *parent, MazeWindow::item &current_Item, int Item_Index = -1);
+   explicit ItemInfoDialog(MazeWindow *parent, MazeWindow::item current_Item, int Item_Index = -1, bool isDev = false);
    ~ItemInfoDialog();
    bool sold = false;
 private slots:
-   void updatePrice(MazeWindow::item &item);
+   void updatePrice(MazeWindow::item item);
 
 private:
    MazeWindow *parent;
    Ui::ItemInfoDialog *ui;
    int Item_Index = 0;
+   bool isDev = false;
    QNetworkAccessManager *networkManager;
 private slots:
    void closeEvent(QCloseEvent *event) override;

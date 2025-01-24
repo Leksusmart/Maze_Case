@@ -12,13 +12,14 @@
 #include <QJsonObject>
 #include <QLabel>
 #include <QMessageBox>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QNetworkRequest>
+#include <QPainter>
 #include <QPropertyAnimation>
 #include <QRandomGenerator>
 #include <QTimer>
 
-#include <QNetworkAccessManager>
-#include <QNetworkReply>
-#include <QNetworkRequest>
 MazeWindow::MazeWindow(QWidget *parent)
    : QMainWindow(parent)
    , ui(new Ui::MazeWindow)
@@ -35,6 +36,7 @@ MazeWindow::MazeWindow(QWidget *parent)
    item Case1{itemDetails[1 - 1].name, itemDetails[1 - 1].source, true, -1, itemDetails[1 - 1].cost[0].toDouble()};
    item Case2{itemDetails[2 - 1].name, itemDetails[2 - 1].source, true, -1, itemDetails[2 - 1].cost[0].toDouble()};
    item Case3{itemDetails[3 - 1].name, itemDetails[3 - 1].source, true, -1, itemDetails[3 - 1].cost[0].toDouble()};
+
    updatePrice(Case1);
    updatePrice(Case2);
    updatePrice(Case3);
@@ -56,28 +58,25 @@ MazeWindow::MazeWindow(QWidget *parent)
       ui->stackedWidget->setCurrentIndex(2);
    });
    connect(ui->pushButton_Buy_Item1, &QPushButton::clicked, this, [this]() {
-      QString name = ui->label_Item1_Name->text().right(8);
-      name.chop(5);
-      QString Name = ui->label_Item1_Name->text().left(ui->label_Item1_Name->text().size() - (1 + name.size() + 5));
-      int cost = name.toInt();
+      QString costStr = ui->label_Item1_Name->text().right(ui->label_Item1_Name->text().size() - itemDetails[1 - 1].name.size() - 1);
+      costStr.chop(5);
+      double cost = costStr.toDouble();
       if (balanceChange(-cost))
-         putInventory(itemDetails[1 - 1].source, Name, true, cost);
+         putInventory(itemDetails[1 - 1].source, itemDetails[1 - 1].name, true, cost);
    });
    connect(ui->pushButton_Buy_Item2, &QPushButton::clicked, this, [this]() {
-      QString name = ui->label_Item2_Name->text().right(8);
-      name.chop(5);
-      QString Name = ui->label_Item2_Name->text().left(ui->label_Item2_Name->text().size() - (1 + name.size() + 5));
-      int cost = name.toInt();
+      QString costStr = ui->label_Item2_Name->text().right(ui->label_Item2_Name->text().size() - itemDetails[2 - 1].name.size() - 1);
+      costStr.chop(5);
+      double cost = costStr.toDouble();
       if (balanceChange(-cost))
-         putInventory(itemDetails[2 - 1].source, Name, true, cost);
+         putInventory(itemDetails[2 - 1].source, itemDetails[2 - 1].name, true, cost);
    });
    connect(ui->pushButton_Buy_Item3, &QPushButton::clicked, this, [this]() {
-      QString name = ui->label_Item3_Name->text().right(8);
-      name.chop(5);
-      QString Name = ui->label_Item3_Name->text().left(ui->label_Item3_Name->text().size() - (1 + name.size() + 5));
-      int cost = name.toInt();
+      QString costStr = ui->label_Item3_Name->text().right(ui->label_Item3_Name->text().size() - itemDetails[3 - 1].name.size() - 1);
+      costStr.chop(5);
+      double cost = costStr.toDouble();
       if (balanceChange(-cost))
-         putInventory(itemDetails[3 - 1].source, Name, true, cost);
+         putInventory(itemDetails[3 - 1].source, itemDetails[3 - 1].name, true, cost);
    });
    connect(ui->Button_Size, &QPushButton::clicked, this, [this]() {
       // Создание нового лабиринта с выбранным размером + обновление интерфейса
@@ -99,8 +98,40 @@ MazeWindow::MazeWindow(QWidget *parent)
    update();
    createMaze();
    ui->stackedWidget->setCurrentIndex(0);
+
+   ui->ButtonDev->hide();
+   if (false) {
+      ui->ButtonDev->show();
+      //Fill dev inventory
+      putInventory(itemDetails[0].source, itemDetails[0].name, true, itemDetails[0].cost[0].toDouble(), 0.0, true);
+      putInventory(itemDetails[1].source, itemDetails[1].name, true, itemDetails[1].cost[0].toDouble(), 0.0, true);
+      putInventory(itemDetails[2].source, itemDetails[2].name, true, itemDetails[2].cost[0].toDouble(), 0.0, true);
+      for (int i = 3; i < itemDetails.size(); i++) {
+         if (itemDetails[i].name == "")
+            continue;
+         for (int j = 4; j >= 0; j--) {
+            float Float = 0.0;
+            if (j == 4)
+               Float = 1.0;
+            else if (j == 3)
+               Float = 0.4;
+            else if (j == 2)
+               Float = 0.2;
+            else if (j == 1)
+               Float = 0.1;
+            if (itemDetails[i].cost[j] == "-1")
+               continue;
+            putInventory(itemDetails[i].source, itemDetails[i].name, false, itemDetails[i].cost[j].toDouble(), Float, true);
+         }
+      }
+      connect(ui->ButtonDev, &QPushButton::clicked, this, [this]() {
+         ui->label_Rank->setPixmap(QPixmap());
+         update();
+         ui->stackedWidget->setCurrentIndex(3);
+      });
+   }
 }
-void MazeWindow::updatePrice(MazeWindow::item &item)
+void MazeWindow::updatePrice(MazeWindow::item item)
 {
    QString ITEM_ID = "";
    int index = 0;
@@ -124,13 +155,11 @@ void MazeWindow::updatePrice(MazeWindow::item &item)
       return;
 
    // Ищем элемент в списке
-   auto it = std::find_if(itemDetails.begin(), itemDetails.end(), [this, item](MazeWindow::ItemDetail &Item) { return Item.source == item.photo; });
+   auto it = std::find_if(itemDetails.begin(), itemDetails.end(), [this, item](MazeWindow::ItemDetail Item) { return Item.source == item.photo; });
 
    QString url = QString("https://steamcommunity.com/market/itemordershistogram?&language=english&currency=5&item_nameid=%1").arg(ITEM_ID);
-   qDebug() << url;
    QNetworkReply *reply = networkManager->get(QNetworkRequest(QUrl(url)));
-
-   connect(reply, &QNetworkReply::finished, [this, reply, &item, index, it]() {
+   connect(reply, &QNetworkReply::finished, [this, reply, index, it]() {
       if (reply->error() == QNetworkReply::NoError) {
          QByteArray responseData = reply->readAll();
          QString jsonString = QString::fromUtf8(responseData);
@@ -147,10 +176,8 @@ void MazeWindow::updatePrice(MazeWindow::item &item)
             QJsonArray firstOrder = buyOrderGraph[0].toArray();
             cost = firstOrder[0].toDouble();
          }
+         qDebug() << QString("Обновлена стоимость: " + it->name + " -> %1").arg(cost, 0, 'f', 2);
 
-         qDebug() << QString("Cost = %1").arg(cost, 0, 'f', 2);
-
-         item.cost = cost;
          it->cost[index] = QString("%1").arg(cost, 0, 'f', 2);
          if (it->source == itemDetails[1 - 1].source)
             ui->label_Item1_Name->setText(QString("%1 %2 руб.").arg(itemDetails[1 - 1].name, itemDetails[1 - 1].cost[0]));
@@ -159,11 +186,21 @@ void MazeWindow::updatePrice(MazeWindow::item &item)
          else if (it->source == itemDetails[3 - 1].source)
             ui->label_Item3_Name->setText(QString("%1 %2 руб.").arg(itemDetails[3 - 1].name, itemDetails[3 - 1].cost[0]));
       } else {
-         item.cost = it->cost[index].toDouble();
          qDebug() << "Ошибка при получении данных:" << reply->errorString();
       }
       reply->deleteLater();
    });
+}
+void MazeWindow::moveEvent(QMoveEvent *event)
+{
+   QWidget::moveEvent(event);
+   // Вычесление максимальных значений
+   QSize screen = this->screen()->size();
+   maxCols = (int) (screen.width() - (6 + ui->labelStatic_Hint->width() + 6 + 6 + ui->label_Size->width() + 6)) / step;
+   maxRows = (int) ((screen.height() - 77) - (5 + ui->label_Balance->height() + ui->pushButton_Inventory->height())) / step;
+   ui->label_Size->setText(QString("Размер лабиринта\nmax x = %1\nmax y = %2").arg(maxCols).arg(maxRows));
+   ui->spinBox_SizeH->setMaximum(maxCols);
+   ui->spinBox_SizeV->setMaximum(maxRows);
 }
 void MazeWindow::update()
 {
@@ -202,6 +239,7 @@ void MazeWindow::update()
    ui->groupBox->setMinimumSize(ui->GroupMaze->size() + QSize(2, 1));
    ui->stackedWidget->setMinimumSize(ui->groupBox->width(), ui->groupBox->height());
    ui->scrollArea_Inventory->resize(ui->stackedWidget->size());
+   ui->scrollArea_Inventory_Dev->resize(ui->stackedWidget->size());
    ui->scrollArea_Store->resize(ui->stackedWidget->size());
    this->setMinimumWidth(6 + ui->labelStatic_Hint->width() + 6 + ui->groupBox->width() + 6 + ui->label_Size->width() + 6);
    this->setMinimumHeight(5 + ui->groupBox->height() + ui->label_Balance->height() + ui->pushButton_Inventory->height());
@@ -210,6 +248,7 @@ void MazeWindow::resizeEvent(QResizeEvent *event)
 {
    QMainWindow::resizeEvent(event);
    ui->scrollArea_Inventory->resize(ui->stackedWidget->size());
+   ui->scrollArea_Inventory_Dev->resize(ui->stackedWidget->size());
    ui->scrollArea_Store->resize(ui->stackedWidget->size());
 
    // Инвентарь
@@ -218,6 +257,13 @@ void MazeWindow::resizeEvent(QResizeEvent *event)
       int column = i % (int) ((this->width() + 5) / (166 + 15));
       ui->gridLayout->removeWidget(Inventory[i]);
       ui->gridLayout->addWidget(Inventory[i], row, column);
+   }
+   // Инвентарь Dev
+   for (int i = 0; i < InventoryDev.size(); ++i) {
+      int row = i / (int) ((this->width() + 5) / (166 + 15));
+      int column = i % (int) ((this->width() + 5) / (166 + 15));
+      ui->gridLayout_Dev->removeWidget(InventoryDev[i]);
+      ui->gridLayout_Dev->addWidget(InventoryDev[i], row, column);
    }
    // Всё остальное в функции
    update();
@@ -260,8 +306,6 @@ bool MazeWindow::saveData()
 
       itemObject["name"] = item->name;
       itemObject["photo"] = item->photo;
-      itemObject["isCase"] = item->isCase;
-      itemObject["cost"] = item->cost;
       if (!item->isCase) {
          itemObject["Float"] = QString::number(item->Float, 'f', 9).toDouble();
       }
@@ -303,15 +347,14 @@ bool MazeWindow::loadData()
          for (const auto &inventoryValue : inventoryArray) {
             QJsonObject item = inventoryValue.toObject();
 
-            bool isCase = item["isCase"].toBool();
             QString name = item["name"].toString();
             QString photo = item["photo"].toString();
-            int cost = item["cost"].toInt();
+            bool isCase = photo.contains("Case");
             if (isCase) {
-               putInventory(photo, name, isCase, cost);
+               putInventory(photo, name, isCase, 0);
             } else {
                float Float = item["Float"].toDouble();
-               putInventory(photo, name, isCase, cost, Float);
+               putInventory(photo, name, isCase, 0, Float);
             }
          }
       }
@@ -335,50 +378,92 @@ bool MazeWindow::loadData()
       return false;
    }
 }
-void MazeWindow::putInventory(QString photo, QString name, bool isCase, int cost, float Float)
+void MazeWindow::putInventory(QString photo, QString name, bool isCase, int cost, float Float, bool isDev)
 {
    //Эта функция добавляет в начало инвентаря предмет
-   QPushButton *itemButton = new QPushButton(ui->scrollArea_Inventory);
-   itemButton->setFixedSize(166, 126);
-   itemButton->setIcon(QIcon(QPixmap(photo)));
-   itemButton->setIconSize(QSize(166, 126));
-   if (photo.contains("Legend")) {
-      itemButton->setStyleSheet("background-color:black;");
-   } else {
-      itemButton->setStyleSheet("border:none;");
+   QScrollArea *Area = ui->scrollArea_Inventory;
+   if (isDev) {
+      Area = ui->scrollArea_Inventory_Dev;
    }
-   Inventory.insert(Inventory.begin(), itemButton);
+   QPushButton *itemButton = new QPushButton(Area);
+   itemButton->setFixedSize(166, 126);
 
+   QPixmap backgroundPixmap("");
+   if (photo.contains("Common")) {
+      backgroundPixmap = QPixmap("://image/Common_Background.png");
+   } else if (photo.contains("Rare")) {
+      backgroundPixmap = QPixmap("://image/Rare_Background.png");
+   } else if (photo.contains("VeryRare")) {
+      backgroundPixmap = QPixmap("://image/VeryRare_Background.png");
+   } else if (photo.contains("Case")) {
+      backgroundPixmap = QPixmap("://image/Basic_Background.png");
+   } else {
+      backgroundPixmap = QPixmap("://image/Secret_Background.png");
+   }
+   QPixmap overlayPixmap(photo);
+   QPixmap combinedPixmap(backgroundPixmap.size());
+   combinedPixmap.fill(Qt::transparent);
+   QPainter painter(&combinedPixmap);
+   painter.drawPixmap(0, 0, backgroundPixmap);
+   int xOffset = (backgroundPixmap.width() - overlayPixmap.width()) / 2;
+   int yOffset = (backgroundPixmap.height() - overlayPixmap.height()) / 2;
+   painter.drawPixmap(xOffset, yOffset, overlayPixmap);
+   painter.end();
+   itemButton->setIcon(QIcon(combinedPixmap));
+   itemButton->setIconSize(itemButton->size());
+   itemButton->setStyleSheet("QPushButton { background-color: transparent; border:none; border-radius: 0px;}"
+                             "QPushButton:hover { background-color: transparent; border:none; border-radius: 0px; }");
+
+   if (isDev) {
+      InventoryDev.insert(InventoryDev.begin(), itemButton);
+
+   } else {
+      Inventory.insert(Inventory.begin(), itemButton);
+   }
    item *newitem = new item;
    newitem->photo = photo;
    newitem->name = name;
    newitem->isCase = isCase;
    newitem->Float = Float;
    newitem->cost = cost;
-   Items.push_back(newitem);
-
-   connect(itemButton, &QPushButton::clicked, [this, itemButton, newitem, photo]() {
-      int index = Inventory.indexOf(itemButton);
-      ItemInfoDialog a(this, *newitem, index);
+   if (!isDev)
+      Items.push_back(newitem);
+   connect(itemButton, &QPushButton::clicked, [this, isDev, itemButton, newitem, photo]() {
+      int index;
+      if (isDev) {
+         index = InventoryDev.indexOf(itemButton);
+      } else {
+         index = Inventory.indexOf(itemButton);
+      }
+      ItemInfoDialog a(this, *newitem, index, isDev);
       int Case_Index = QString(photo[photo.indexOf("item") + 4]).toInt();
       if (a.exec() == QDialog::Accepted) {
          //Открыть новое окно с опенингом кейса
          CaseOpenDialog *b = new CaseOpenDialog(this, Case_Index);
          b->exec();
-         b->deleteLater();
       }
       update();
    });
-   for (int i = 0; i < Inventory.size(); ++i) {
-      int row = i / (int) ((this->width() + 5) / (166 + 15));
-      int column = i % (int) ((this->width() + 5) / (166 + 15));
-      ui->gridLayout->removeWidget(Inventory[i]);
-      ui->gridLayout->addWidget(Inventory[i], row, column);
-   }
+   if (isDev)
+      for (int i = 0; i < InventoryDev.size(); ++i) {
+         int row = i / (int) ((this->width() + 5) / (166 + 15));
+         int column = i % (int) ((this->width() + 5) / (166 + 15));
+         ui->gridLayout_Dev->removeWidget(InventoryDev[i]);
+         ui->gridLayout_Dev->addWidget(InventoryDev[i], row, column);
+      }
+   else
+      for (int i = 0; i < Inventory.size(); ++i) {
+         int row = i / (int) ((this->width() + 5) / (166 + 15));
+         int column = i % (int) ((this->width() + 5) / (166 + 15));
+         ui->gridLayout->removeWidget(Inventory[i]);
+         ui->gridLayout->addWidget(Inventory[i], row, column);
+      }
    update();
 }
-void MazeWindow::getInventory(int index)
+void MazeWindow::getInventory(int index, bool isDev)
 {
+   if (isDev)
+      return;
    // Эта функция убирает из инвентаря предмет под индексом
    if (index < 0 || index >= Inventory.size()) {
       return;

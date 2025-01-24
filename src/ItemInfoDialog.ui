@@ -77,10 +77,10 @@
   <widget class="QLabel" name="label_Photo">
    <property name="geometry">
     <rect>
-     <x>10</x>
-     <y>10</y>
-     <width>280</width>
-     <height>217</height>
+     <x>25</x>
+     <y>15</y>
+     <width>256</width>
+     <height>192</height>
     </rect>
    </property>
    <property name="sizePolicy">

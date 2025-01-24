@@ -7,6 +7,7 @@
 #include "ui_CaseOpenDialog.h"
 #include "ui_MazeWindow.h"
 
+#include <QPainter>
 #include <QPropertyAnimation>
 #include <QPushButton>
 #include <QScrollBar>
@@ -22,20 +23,7 @@ CaseOpenDialog::CaseOpenDialog(
    ui->setupUi(this);
    animationTimer = new QTimer(this);
    this->setWindowIcon(QPixmap(parent->itemDetails[Case_Index - 1].source));
-   switch (Case_Index) {
-   case 1:
-      this->setWindowTitle(parent->ui->label_Item1_Name->text().left(parent->ui->label_Item1_Name->text().length() - 9));
-      break;
-   case 2:
-      this->setWindowTitle(parent->ui->label_Item2_Name->text().left(parent->ui->label_Item2_Name->text().length() - 9));
-      break;
-   case 3:
-      this->setWindowTitle(parent->ui->label_Item3_Name->text().left(parent->ui->label_Item3_Name->text().length() - 9));
-      break;
-   default:
-      qDebug() << "кейса с индексом " << Case_Index << " не существует";
-      return;
-   }
+   this->setWindowTitle(parent->itemDetails[Case_Index - 1].name);
    CreateCase();
    connect(ui->Button_Open, &QPushButton::clicked, this, &CaseOpenDialog::StartAnimation);
 }
@@ -114,7 +102,9 @@ void CaseOpenDialog::CreateCase()
 
    // Добавление изображений с учетом вероятностей
    for (int i = 0; i < 35; ++i) {
-      QLabel *label = new QLabel();
+      QPushButton *button = new QPushButton();
+      button->setFixedSize(164, 125);
+
       float probability = parent->randomGenerator->bounded(1.0);
       QString temp;
       while (true) {
@@ -137,10 +127,43 @@ void CaseOpenDialog::CreateCase()
          }
          probability = parent->randomGenerator->bounded(1.0);
       }
-      label->setPixmap(QPixmap(temp));
-      label->setFixedSize(164, 125);
-      label->setScaledContents(true);
-      hLayout->addWidget(label);
+
+      QPixmap backgroundPixmap("");
+      if (temp.contains("Common")) {
+         backgroundPixmap = QPixmap("://image/Common_Background.png");
+      } else if (temp.contains("Rare")) {
+         backgroundPixmap = QPixmap("://image/Rare_Background.png");
+      } else if (temp.contains("VeryRare")) {
+         backgroundPixmap = QPixmap("://image/VeryRare_Background.png");
+      } else if (temp.contains("Case")) {
+         backgroundPixmap = QPixmap("://image/Basic_Background.png");
+      } else {
+         backgroundPixmap = QPixmap("://image/Secret_Background.png");
+      }
+
+      QPixmap overlayPixmap(temp);
+      QPixmap combinedPixmap(backgroundPixmap.size());
+      combinedPixmap.fill(Qt::transparent);
+
+      QPainter painter(&combinedPixmap);
+      painter.drawPixmap(0, 0, backgroundPixmap);
+
+      // Вычисляем смещение для центрирования наложенного изображения
+      int xOffset = (backgroundPixmap.width() - overlayPixmap.width()) / 2;
+      int yOffset = (backgroundPixmap.height() - overlayPixmap.height()) / 2;
+
+      // Накладываем изображение с прозрачным фоном по центру
+      painter.drawPixmap(xOffset, yOffset, overlayPixmap);
+      painter.end();
+
+      // Устанавливаем комбинированное изображение как иконку кнопки
+      button->setIcon(QIcon(combinedPixmap));
+      button->setIconSize(button->size());
+      button->setFlat(true);
+      button->setStyleSheet("QPushButton { background-color: transparent; border:none; border-radius: 0px;}"
+                            "QPushButton:hover { background-color: transparent; border:none; border-radius: 0px; }");
+      hLayout->addWidget(button);
+
       if (i == 31) { //выяснено техническим путём
          if (ItemsLegend.contains(temp)) {
             do {
@@ -218,7 +241,6 @@ void CaseOpenDialog::StartAnimation()
    });
    animationTimer->start(10000);
 }
-
 void CaseOpenDialog::closeEvent(QCloseEvent *event)
 {
    if (animationTimer != nullptr) {
@@ -226,7 +248,7 @@ void CaseOpenDialog::closeEvent(QCloseEvent *event)
       MazeWindow::item *rez = new MazeWindow::item;
       do {
          // Ищем элемент в списке по source
-         auto it = std::find_if(parent->itemDetails.begin(), parent->itemDetails.end(), [this](const MazeWindow::ItemDetail &item) { return item.source == this->reward; });
+         auto it = std::find_if(parent->itemDetails.begin(), parent->itemDetails.end(), [this](MazeWindow::ItemDetail item) { return item.source == this->reward; });
 
          if (it != parent->itemDetails.end()) {
             rez->photo = reward;
@@ -251,6 +273,7 @@ void CaseOpenDialog::closeEvent(QCloseEvent *event)
             rez->isCase = false;
             rez->Float = -1;
             rez->cost = 0;
+            qDebug() << "here2";
          }
       } while (rez->cost == -1);
       parent->putInventory(reward, rez->name, rez->isCase, rez->cost, rez->Float);

@@ -34,13 +34,14 @@ public:
    };
 public slots:
    bool balanceChange(double value);
-   void putInventory(QString photo, QString name, bool isCase, int cost, float Float = -1);
-   void getInventory(int index);
+   void putInventory(QString photo, QString name, bool isCase, int cost, float Float = -1, bool isDev = false);
+   void getInventory(int index, bool isDev = false);
 private slots:
    void resizeEvent(QResizeEvent *event) override;
    void keyPressEvent(QKeyEvent *event) override;
    void closeEvent(QCloseEvent *event) override;
-   void updatePrice(MazeWindow::item &item);
+   void moveEvent(QMoveEvent *event) override;
+   void updatePrice(MazeWindow::item item);
    void createMaze();
    void createWalls();
    void createWayMarker(short int id1, short int id2);
@@ -66,6 +67,7 @@ private:
       bool Right = false;
    };
    QVector<QPushButton *> Inventory;
+   QVector<QPushButton *> InventoryDev;
    QVector<cell> Cell;
    QList<QLabel *> walls;
    QVector<item *> Items;
@@ -112,7 +114,7 @@ public:
       {"://image/item1_VeryRare3.png", "UMP-45 | Neo-Noir", "UMP-45 : Неонуар", {"2786", "1744", "986", "792", "822"}, {"176460728", "176460755", "176460690", "176460589", "176460774"}},
       {"://image/item1_Secret1.png", "Glock-18 | Gold Toof", "Glock-18: Золотой зубок", {"11257", "5682", "2719", "2546", "1979"}, {"176460816", "176460433", "176460519", "176460907", "176460478"}},
       {"://image/item1_Secret2.png", "M4A1-S | Vaporwave", "M4A1-S: Вейпорвейв", {"31841", "19607", "13455", "11150", "8739"}, {"176460720", "176460548", "176460555", "176460661", "176460796"}},
-      {"://image/item1_Legend.png", "", "", {"", "", "", "", ""}, {"-1", "-1", "-1", "-1", "-1"}},
+      {"://image/item1_Legend.png", "", "", {"-1", "-1", "-1", "-1", "-1"}, {"-1", "-1", "-1", "-1", "-1"}},
       {"://image/item1_Legend1.png",
        "★ Kukri Knife | Boreal Forest",
        "Кукри: Северный лес",
@@ -184,7 +186,7 @@ public:
       {"://image/item2_VeryRare3.png", "MP7 | Abyssal Apparition", "MP7: Дух бездны", {"1097", "416", "202", "175", "164"}, {"176288539", "176288544", "176288509", "176288470", "176288619"}},
       {"://image/item2_Secret1.png", "AK-47 | Nightwish", "AK-47: Пожелание на ночь", {"7446", "2497", "1223", "977", "662"}, {"176288668", "176288589", "176288571", "176288618", "176288611"}},
       {"://image/item2_Secret2.png", "MP9 | Starlight Protector", "MP9: Звёздный защитник", {"2286", "883", "417", "442", "310"}, {"176288559", "176288627", "176288507", "176288654", "176288664"}},
-      {"://image/item2_Legend.png", "", "", {"", "", "", "", ""}, {"-1", "-1", "-1", "-1", "-1"}},
+      {"://image/item2_Legend.png", "", "", {"-1", "-1", "-1", "-1", "-1"}, {"-1", "-1", "-1", "-1", "-1"}},
       {"://image/item2_Legend1.png", "★ Falchion Knife | Lore", "Фальшион: Легенды", {"35658", "29237", "25359", "22915", "22915"}, {"176263421", "176262938", "176263225", "176263314", "176263429"}},
       {"://image/item2_Legend2.png",
        "★ Butterfly Knife | Lore",
@@ -325,7 +327,7 @@ public:
       {"://image/item3_VeryRare3.png", "P2000 | Wicked Sick", "P2000: Сорвиголова", {"1687", "588", "233", "183", "179"}, {"176358871", "176358879", "176358811", "176358853", "176358890"}},
       {"://image/item3_Secret1.png", "M4A4 | Temukau", "M4A4: Темукау", {"14913", "5772", "1442", "1378", "856"}, {"176358901", "176358913", "176358845", "176358937", "176358946"}},
       {"://image/item3_Secret2.png", "AK-47 | Head Shot", "AK-47: Выстрел в голову", {"7481", "2404", "1353", "842", "713"}, {"176358933", "176358850", "176358849", "176358868", "176358858"}},
-      {"://image/item3_Legend.png", "", "", {"", "", "", "", ""}, {"-1", "-1", "-1", "-1", "-1"}},
+      {"://image/item3_Legend.png", "", "", {"-1", "-1", "-1", "-1", "-1"}, {"-1", "-1", "-1", "-1", "-1"}},
       {"://image/item3_Legend1.png",
        "★ Hydra Gloves | Emerald",
        "Перчатки «Гидра»: Изумруд",

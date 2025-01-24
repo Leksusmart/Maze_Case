@@ -150,5 +150,10 @@
         <file>image/Rank7.png</file>
         <file>image/Rank8.png</file>
         <file>image/Rank9.png</file>
+        <file>image/Common_Background.png</file>
+        <file>image/Rare_Background.png</file>
+        <file>image/Secret_Background.png</file>
+        <file>image/VeryRare_Background.png</file>
+        <file>image/Basic_Background.png</file>
     </qresource>
 </RCC>

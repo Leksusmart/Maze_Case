@@ -12,12 +12,14 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
-ItemInfoDialog::ItemInfoDialog(MazeWindow *parent, MazeWindow::item &current_Item, int Item_Index)
+
+ItemInfoDialog::ItemInfoDialog(MazeWindow *parent, MazeWindow::item current_Item, int Item_Index, bool isDev)
    : QDialog(parent)
    , parent(parent)
    , ui(new Ui::ItemInfoDialog)
    , Item_Index(Item_Index)
    , networkManager(new QNetworkAccessManager(this))
+   , isDev(isDev)
 {
    ui->setupUi(this);
    this->setWindowTitle("О предмете");
@@ -25,7 +27,7 @@ ItemInfoDialog::ItemInfoDialog(MazeWindow *parent, MazeWindow::item &current_Ite
 
    connect(ui->toolButton, &QToolButton::clicked, this, [this, current_Item, parent]() {
       auto it = std::find_if(parent->itemDetails.begin(), parent->itemDetails.end(), [this, current_Item](MazeWindow::ItemDetail &Item) { return Item.source == current_Item.photo; });
-      if (current_Item.isCase) {
+      if ((it->steamID[0] == it->steamID[1] && it->steamID[1] == it->steamID[2] && it->steamID[2] == it->steamID[3] && it->steamID[3] == it->steamID[4]) || current_Item.isCase) {
          QDesktopServices::openUrl(QUrl("https://steamcommunity.com/market/listings/730/" + it->nameEng));
          qDebug() << "Opened in browser:" << "https://steamcommunity.com/market/listings/730/" + it->nameEng;
       } else {
@@ -43,8 +45,9 @@ ItemInfoDialog::ItemInfoDialog(MazeWindow *parent, MazeWindow::item &current_Ite
          QDesktopServices::openUrl(QUrl("https://steamcommunity.com/market/listings/730/" + it->nameEng + " " + FloatStr));
          qDebug() << "Opened in browser:" << "https://steamcommunity.com/market/listings/730/" + it->nameEng + " " + FloatStr;
       }
+      this->reject();
    });
-   connect(ui->pushButton_Sold, &QPushButton::clicked, this, [this, parent, Item_Index, &current_Item]() {
+   connect(ui->pushButton_Sold, &QPushButton::clicked, this, [this, parent, Item_Index, &current_Item, isDev]() {
       sold = true;
       if (current_Item.cost == 0) {
          auto it = std::find_if(parent->itemDetails.begin(), parent->itemDetails.end(), [this, current_Item](MazeWindow::ItemDetail &Item) { return Item.source == current_Item.photo; });
@@ -62,7 +65,7 @@ ItemInfoDialog::ItemInfoDialog(MazeWindow *parent, MazeWindow::item &current_Ite
          parent->balanceChange(it->cost[index].toDouble());
       } else
          parent->balanceChange(current_Item.cost);
-      parent->getInventory(Item_Index);
+      parent->getInventory(Item_Index, isDev);
       this->reject();
    });
    ui->pushButton_Open->hide();
@@ -71,9 +74,9 @@ ItemInfoDialog::ItemInfoDialog(MazeWindow *parent, MazeWindow::item &current_Ite
       ui->labelStatic_Float->hide();
       ui->label_Float_Name->hide();
       ui->pushButton_Open->show();
-      connect(ui->pushButton_Open, &QPushButton::clicked, this, [this, parent, Item_Index]() {
+      connect(ui->pushButton_Open, &QPushButton::clicked, this, [this, isDev, parent, Item_Index]() {
          if (parent->balanceChange(-265)) {
-            parent->getInventory(Item_Index);
+            parent->getInventory(Item_Index, isDev);
             this->accept();
          }
       });
@@ -85,22 +88,29 @@ ItemInfoDialog::ItemInfoDialog(MazeWindow *parent, MazeWindow::item &current_Ite
 
    ui->label_Name->setText(current_Item.name);
    ui->label_Float->setText(QString::number(current_Item.Float, 'f', 9));
-   if (current_Item.Float >= 0.45)
+   QString FloatStr = "";
+   if (current_Item.Float >= 0.45) {
+      FloatStr = "(Battle-Scarred)";
       ui->label_Float_Name->setText("Закаленное в боях");
-   else if (current_Item.Float >= 0.37)
+   } else if (current_Item.Float >= 0.37) {
+      FloatStr = "(Well-Worn)";
       ui->label_Float_Name->setText("Поношенное");
-   else if (current_Item.Float >= 0.15)
+   } else if (current_Item.Float >= 0.15) {
+      FloatStr = "(Field-Tested)";
       ui->label_Float_Name->setText("После полевых испытаний");
-   else if (current_Item.Float >= 0.07)
+   } else if (current_Item.Float >= 0.07) {
+      FloatStr = "(Minimal Wear)";
       ui->label_Float_Name->setText("Немного поношенное");
-   else
+   } else if (current_Item.Float >= 0.0) {
+      FloatStr = "(Factory New)";
       ui->label_Float_Name->setText("Прямо с завода");
+   }
 
    ui->label_Photo->setPixmap(QPixmap(current_Item.photo).scaled(ui->label_Photo->size(), Qt::KeepAspectRatioByExpanding, Qt::FastTransformation));
    ui->label_Photo->raise();
    ui->label_Photo->setScaledContents(true);
 }
-void ItemInfoDialog::updatePrice(MazeWindow::item &item)
+void ItemInfoDialog::updatePrice(MazeWindow::item item)
 {
    QString ITEM_ID = "";
    int index = 0;
@@ -130,10 +140,9 @@ void ItemInfoDialog::updatePrice(MazeWindow::item &item)
    ui->label_Cost->setText("");
 
    QString url = QString("https://steamcommunity.com/market/itemordershistogram?&language=english&currency=5&item_nameid=%1").arg(ITEM_ID);
-   qDebug() << url;
    QNetworkReply *reply = networkManager->get(QNetworkRequest(QUrl(url)));
 
-   connect(reply, &QNetworkReply::finished, [this, reply, &item, index, it]() {
+   connect(reply, &QNetworkReply::finished, [this, reply, index, it]() {
       if (reply != nullptr) {
          if (reply->error() == QNetworkReply::NoError) {
             QByteArray responseData = reply->readAll();
@@ -152,10 +161,9 @@ void ItemInfoDialog::updatePrice(MazeWindow::item &item)
                cost = firstOrder[0].toDouble();
             }
 
-            qDebug() << QString("Cost = %1").arg(cost, 0, 'f', 2);
+            qDebug() << QString("Обновлена стоимость: " + it->name + " -> %1").arg(cost, 0, 'f', 2);
 
             ui->label_Cost->setText(QString("%1 руб.").arg(cost, 0, 'f', 2));
-            item.cost = cost;
             it->cost[index] = QString("%1").arg(cost, 0, 'f', 2);
 
             ui->labelStatic_Cost->setText("Это стоит:");
