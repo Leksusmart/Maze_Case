@@ -1,17 +1,8 @@
 #include "CaseOpenDialog.h"
-#include <QCloseEvent>
-#include <QHBoxLayout>
-#include <QLabel>
 #include "ItemInfoDialog.h"
 #include "MazeWindow.h"
-#include "ui_CaseOpenDialog.h"
-#include "ui_MazeWindow.h"
-
-#include <QPainter>
-#include <QPropertyAnimation>
-#include <QPushButton>
-#include <QScrollBar>
-#include <QTimer>
+#include "src/ui_CaseOpenDialog.h"
+#include "src/ui_MazeWindow.h"
 
 CaseOpenDialog::CaseOpenDialog(
    MazeWindow *parent, int Case_Index)

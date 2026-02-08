@@ -2,16 +2,20 @@
 #define ITEMINFODIALOG_H
 #include "MazeWindow.h"
 
+#include <QDesktopServices>
 #include <QDialog>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QNetworkRequest>
+#include <QStyle>
 
-namespace Ui {
-class ItemInfoDialog;
-}
+namespace Ui { class ItemInfoDialog; }
 
 class ItemInfoDialog : public QDialog
 {
-   Q_OBJECT
-
 public:
    explicit ItemInfoDialog(MazeWindow *parent, MazeWindow::item current_Item, int Item_Index = -1, bool isDev = false);
    ~ItemInfoDialog();

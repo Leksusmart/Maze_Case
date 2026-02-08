@@ -1,18 +1,11 @@
-#ifndef WELCOMEWINDOW_H
-#define WELCOMEWINDOW_H
+#pragma once
 
 #include <QDialog>
 
-QT_BEGIN_NAMESPACE
-namespace Ui {
-class WelcomeWindow;
-}
-QT_END_NAMESPACE
+namespace Ui { class WelcomeWindow; }
 
 class WelcomeWindow : public QDialog
 {
-   Q_OBJECT
-
 public:
    WelcomeWindow(QWidget *parent = nullptr);
    ~WelcomeWindow();
@@ -20,4 +13,3 @@ public:
 private:
    Ui::WelcomeWindow *ui;
 };
-#endif // WELCOMEWINDOW_H

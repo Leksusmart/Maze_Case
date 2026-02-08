@@ -1,24 +1,7 @@
 #include "MazeWindow.h"
 #include "CaseOpenDialog.h"
 #include "ItemInfoDialog.h"
-#include "ui_MazeWindow.h"
-
-#include <QDebug>
-#include <QDir>
-#include <QFile>
-#include <QGraphicsOpacityEffect>
-#include <QJsonArray>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QLabel>
-#include <QMessageBox>
-#include <QNetworkAccessManager>
-#include <QNetworkReply>
-#include <QNetworkRequest>
-#include <QPainter>
-#include <QPropertyAnimation>
-#include <QRandomGenerator>
-#include <QTimer>
+#include "src/ui_MazeWindow.h"
 
 MazeWindow::MazeWindow(QWidget *parent)
    : QMainWindow(parent)
@@ -843,10 +826,13 @@ bool MazeWindow::balanceChange(double value)
 {
    QString currentBalanceText = ui->label_Balance->text();
    currentBalanceText.chop(5);
-   double newBalance = currentBalanceText.toDouble() + value;
-
+   double currentBalance = currentBalanceText.toDouble();
+   double newBalance = currentBalance + value;
+   qDebug() << "старый баланс " << currentBalance << " добавилось " << value << ". Новый баланс"
+            << newBalance;
    if (newBalance < 0) {
       QMessageBox::warning(this, "Ошибка", "Недостаточно средств");
+      qDebug() << "Ошибка, Недостаточно средств";
       return false;
    }
 

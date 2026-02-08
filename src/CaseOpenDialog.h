@@ -1,19 +1,23 @@
-#ifndef CASEOPENDIALOG_H
-#define CASEOPENDIALOG_H
+#pragma once
 
-#include <QDialog>
 #include "MazeWindow.h"
+
+#include <QCloseEvent>
+#include <QDialog>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QPainter>
+#include <QPropertyAnimation>
+#include <QPushButton>
+#include <QScrollBar>
+#include <QTimer>
 #include <qboxlayout.h>
 #include <qpropertyanimation.h>
 
-namespace Ui {
-class CaseOpenDialog;
-}
+namespace Ui { class CaseOpenDialog; }
 
 class CaseOpenDialog : public QDialog
 {
-   Q_OBJECT
-
 public:
    explicit CaseOpenDialog(MazeWindow *parent = nullptr, int Case_Index = 1);
    ~CaseOpenDialog();
@@ -30,5 +34,3 @@ private:
    int Case_Index;
    float Float;
 };
-
-#endif // CASEOPENDIALOG_H

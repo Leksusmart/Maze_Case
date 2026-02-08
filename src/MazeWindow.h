@@ -1,24 +1,31 @@
-#ifndef MAZEWINDOW_H
-#define MAZEWINDOW_H
+#pragma once
 
+#include <QDebug>
+#include <QDir>
+#include <QFile>
+#include <QGraphicsOpacityEffect>
+#include <QJsonArray>
+#include <QJsonDocument>
 #include <QJsonObject>
 #include <QKeyEvent>
 #include <QLabel>
 #include <QMainWindow>
+#include <QMessageBox>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QNetworkRequest>
+#include <QPainter>
+#include <QPropertyAnimation>
 #include <QPushButton>
 #include <QRandomGenerator>
 #include <QShowEvent>
 #include <QStandardPaths>
+#include <QTimer>
 
-#include <QNetworkAccessManager>
-namespace Ui {
-class MazeWindow;
-}
+namespace Ui { class MazeWindow; }
 
 class MazeWindow : public QMainWindow
 {
-   Q_OBJECT
-
 public:
    explicit MazeWindow(QWidget *parent = nullptr);
    ~MazeWindow();
@@ -32,7 +39,8 @@ public:
       float Float;
       double cost;
    };
-public slots:
+   unsigned int keyCost = 204;
+   public slots:
    bool balanceChange(double value);
    void putInventory(QString photo, QString name, bool isCase, int cost, float Float = -1, bool isDev = false);
    void getInventory(int index, bool isDev = false);
@@ -441,5 +449,3 @@ public:
        {"213023", "157313", "59144", "49671", "33985"},
        {"175981589", "175967418", "175967192", "175969277", "175967114"}}};
 };
-
-#endif // MAZEWINDOW_H

@@ -1,17 +1,7 @@
 #include "ItemInfoDialog.h"
 #include "MazeWindow.h"
-#include "ui_ItemInfoDialog.h"
-#include "ui_MazeWindow.h"
-
-#include <QStyle>
-
-#include <QDesktopServices>
-#include <QJsonArray>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QNetworkAccessManager>
-#include <QNetworkReply>
-#include <QNetworkRequest>
+#include "src/ui_ItemInfoDialog.h"
+#include "src/ui_MazeWindow.h"
 
 ItemInfoDialog::ItemInfoDialog(MazeWindow *parent, MazeWindow::item current_Item, int Item_Index, bool isDev)
    : QDialog(parent)
@@ -69,16 +59,18 @@ ItemInfoDialog::ItemInfoDialog(MazeWindow *parent, MazeWindow::item current_Item
       this->reject();
    });
    ui->pushButton_Open->hide();
+   ui->pushButton_Open->setText("Открыть кейс\n" + QString::number(parent->keyCost) + " руб.");
    if (current_Item.isCase) {
       ui->label_Float->hide();
       ui->labelStatic_Float->hide();
       ui->label_Float_Name->hide();
       ui->pushButton_Open->show();
       connect(ui->pushButton_Open, &QPushButton::clicked, this, [this, isDev, parent, Item_Index]() {
-         if (parent->balanceChange(-265)) {
-            parent->getInventory(Item_Index, isDev);
-            this->accept();
-         }
+          if (parent->balanceChange(-(double) parent->keyCost)) {
+              qDebug() << "куплен ключ";
+              parent->getInventory(Item_Index, isDev);
+              this->accept();
+          }
       });
       updatePrice(current_Item);
    } else {
